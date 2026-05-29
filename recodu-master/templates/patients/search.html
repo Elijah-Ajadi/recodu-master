@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Patient Intake - Recodu{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Patient Intake</div>
+    <div style="position: relative;">
+        <input type="text" id="search-input" class="form-input" placeholder="Search by name or phone number..." autocomplete="off" tabindex="1">
+        <div id="search-results" class="search-results"></div>
+    </div>
+    <div class="mt-md text-center">
+        <span class="text-muted">or</span>
+    </div>
+    <div class="mt-md text-center">
+        <button class="btn btn-primary" data-modal-target="register-modal" tabindex="2">Register New Patient</button>
+    </div>
+</div>
+
+<div id="register-modal" class="modal-overlay">
+    <div class="modal">
+        <div class="modal-header">
+            <h2>Register New Patient</h2>
+            <button class="modal-close">&times;</button>
+        </div>
+        <form id="register-form">
+            {% csrf_token %}
+            <div class="form-group">
+                <label class="form-label">First Name</label>
+                <input type="text" name="first_name" class="form-input" tabindex="1" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Last Name</label>
+                <input type="text" name="last_name" class="form-input" tabindex="2" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="text" name="phone" class="form-input" tabindex="3" required>
+            </div>
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label class="form-label">Gender</label>
+                    <select name="gender" class="form-input" tabindex="4" required>
+                        <option value="">Select</option>
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Age Range</label>
+                    <select name="age_range" class="form-input" tabindex="5" required>
+                        <option value="">Select</option>
+                        <option value="0-5">0-5</option>
+                        <option value="6-12">6-12</option>
+                        <option value="13-17">13-17</option>
+                        <option value="18-25">18-25</option>
+                        <option value="26-35">26-35</option>
+                        <option value="36-45">36-45</option>
+                        <option value="46-55">46-55</option>
+                        <option value="56-65">56-65</option>
+                        <option value="65+">65+</option>
+                    </select>
+                </div>
+            </div>
+            <div id="register-error" class="alert alert-error" style="display: none;"></div>
+            <button type="submit" class="btn btn-primary" style="width: 100%;" tabindex="6">Register</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const searchInput = document.getElementById("search-input");
+    const searchResults = document.getElementById("search-results");
+    const registerForm = document.getElementById("register-form");
+    const registerError = document.getElementById("register-error");
+
+    const searchDebounce = debounce(function () {
+        const query = searchInput.value.trim();
+        if (query.length < 2) {
+            searchResults.classList.remove("active");
+            return;
+        }
+        fetch(`/patients/api/search/?q=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                searchResults.innerHTML = "";
+                if (data.results.length === 0) {
+                    searchResults.innerHTML = '<div class="search-result-item text-muted">No results found</div>';
+                } else {
+                    data.results.forEach(function (patient) {
+                        const div = document.createElement("div");
+                        div.className = "search-result-item";
+                        div.innerHTML = `<strong>${patient.name}</strong><br><span class="text-sm text-muted">${patient.phone}</span>`;
+                        div.addEventListener("click", function () {
+                            window.location.href = patient.url;
+                        });
+                        searchResults.appendChild(div);
+                    });
+                }
+                searchResults.classList.add("active");
+            });
+    }, 300);
+
+    searchInput.addEventListener("input", searchDebounce);
+
+    document.addEventListener("click", function (e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.classList.remove("active");
+        }
+    });
+
+    registerForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        registerError.style.display = "none";
+        const formData = new FormData(registerForm);
+        fetch("/patients/api/create/", {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": getCookie("csrftoken"),
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(Object.fromEntries(formData)),
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = data.url;
+            } else {
+                registerError.textContent = data.errors ? Object.values(data.errors).flat().join(" ") : data.error;
+                registerError.style.display = "block";
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

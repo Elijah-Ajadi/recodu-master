@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Register User - Recodu{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 0 auto;">
+    <div class="card-header">Register New User</div>
+    <form method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+            {{ form.username }}
+            {% if form.username.errors %}
+            <p class="text-sm" style="color: var(--color-danger);">{{ form.username.errors.0 }}</p>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
+            {{ form.email }}
+            {% if form.email.errors %}
+            <p class="text-sm" style="color: var(--color-danger);">{{ form.email.errors.0 }}</p>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.role.id_for_label }}" class="form-label">Role</label>
+            {{ form.role }}
+            {% if form.role.errors %}
+            <p class="text-sm" style="color: var(--color-danger);">{{ form.role.errors.0 }}</p>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+            {{ form.password1 }}
+            {% if form.password1.errors %}
+            <p class="text-sm" style="color: var(--color-danger);">{{ form.password1.errors.0 }}</p>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
+            {{ form.password2 }}
+            {% if form.password2.errors %}
+            <p class="text-sm" style="color: var(--color-danger);">{{ form.password2.errors.0 }}</p>
+            {% endif %}
+        </div>
+        <div class="flex gap-md" style="flex-wrap: wrap;">
+            <a href="{% url 'dashboard:home' %}" class="btn btn-outline" style="flex: 1; text-align: center; min-width: 120px;">Cancel</a>
+            <button type="submit" class="btn btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Register User</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

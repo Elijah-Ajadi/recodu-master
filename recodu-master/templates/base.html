@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Recodu{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <nav class="navbar">
+        <div class="container">
+            <a href="{% if user.is_unit_head %}{% url 'dashboard:home' %}{% else %}{% url 'patients:search' %}{% endif %}" class="navbar-brand">Recodu</a>
+            <ul class="navbar-nav">
+                {% if user.is_unit_head %}
+                <li><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
+                <li><a href="{% url 'dashboard:users' %}">Users</a></li>
+                <li><a href="{% url 'dashboard:export' %}">Export</a></li>
+                {% else %}
+                <li><a href="{% url 'patients:search' %}">Intake</a></li>
+                {% endif %}
+                <li>
+                    <form action="{% url 'accounts:logout' %}" method="POST" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline btn-logout">Logout</button>
+                    </form>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="container" style="padding-top: 1.5rem; padding-bottom: 1.5rem;">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

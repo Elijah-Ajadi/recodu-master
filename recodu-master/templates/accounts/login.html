@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Recodu{% endblock %}
+
+{% block content %}
+<div class="login-container" style="margin: -1.5rem;">
+    <div class="card login-card">
+        <h1>Recodu</h1>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                <p class="text-sm" style="color: var(--color-danger);">{{ form.username.errors.0 }}</p>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.password.id_for_label }}" class="form-label">Password</label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                <p class="text-sm" style="color: var(--color-danger);">{{ form.password.errors.0 }}</p>
+                {% endif %}
+            </div>
+            {% if form.non_field_errors %}
+            <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary" style="width: 100%;">Sign In</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

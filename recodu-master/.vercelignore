@@ -1,0 +1,13 @@
+.env
+db.sqlite3
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+media/
+staticfiles/

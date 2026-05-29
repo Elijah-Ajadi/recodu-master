@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block title %}User Management - Recodu{% endblock %}
+
+{% block content %}
+<div class="flex justify-between items-center mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
+    <h2 style="font-size: var(--text-xl); font-weight: 700;">User Management</h2>
+    <a href="{% url 'accounts:register' %}" class="btn btn-primary">Add User</a>
+</div>
+
+<div class="card" style="overflow-x: auto;">
+    <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+        <thead>
+            <tr style="border-bottom: 2px solid var(--color-gray-200);">
+                <th style="text-align: left; padding: 0.75rem;">Username</th>
+                <th style="text-align: left; padding: 0.75rem;">Email</th>
+                <th style="text-align: left; padding: 0.75rem;">Role</th>
+                <th style="text-align: left; padding: 0.75rem;">Status</th>
+                <th style="text-align: left; padding: 0.75rem;">Joined</th>
+                <th style="text-align: left; padding: 0.75rem;">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr style="border-bottom: 1px solid var(--color-gray-100);">
+                <td style="padding: 0.75rem;">{{ u.username }}</td>
+                <td style="padding: 0.75rem;">{{ u.email|default:"—" }}</td>
+                <td style="padding: 0.75rem;">
+                    {% if u.is_unit_head %}
+                    <span class="badge badge-primary">Unit Head</span>
+                    {% else %}
+                    <span class="badge badge-neutral">Volunteer</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 0.75rem;">
+                    {% if u.is_active %}
+                    <span class="badge badge-success">Active</span>
+                    {% else %}
+                    <span class="badge badge-danger">Inactive</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 0.75rem;" class="text-sm text-muted">{{ u.date_joined|date:"M d, Y" }}</td>
+                <td style="padding: 0.75rem;">
+                    {% if u.id != user.id %}
+                    <form action="{% url 'dashboard:toggle_user' u.id %}" method="POST" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm {% if u.is_active %}btn-danger{% else %}btn-success{% endif %}">
+                            {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+                        </button>
+                    </form>
+                    {% else %}
+                    <span class="text-xs text-muted">Current user</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted" style="padding: 1.5rem;">No users found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Vitals - Recodu{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Edit Vitals - {{ record.patient.full_name }}</div>
+
+    {% if not record.is_editable and not user.is_unit_head %}
+    <div class="alert alert-warning">
+        This record is past the 5-minute edit window. You can request a correction below.
+    </div>
+    <form action="{% url 'vitals:request_correction' record.id %}" method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Reason for Correction</label>
+            <textarea name="reason" class="form-input" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-warning">Request Correction</button>
+    </form>
+    {% else %}
+    <form method="POST" id="vitals-form">
+        {% csrf_token %}
+        {{ form.patient }}
+
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="{{ form.systolic.id_for_label }}" class="form-label">Systolic BP (mmHg)</label>
+                {{ form.systolic }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.diastolic.id_for_label }}" class="form-label">Diastolic BP (mmHg)</label>
+                {{ form.diastolic }}
+            </div>
+        </div>
+
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="{{ form.pulse.id_for_label }}" class="form-label">Pulse (bpm)</label>
+                {{ form.pulse }}
+            </div>
+            <div class="form-group">
+                <label for="{{ form.temperature.id_for_label }}" class="form-label">Temperature (°C)</label>
+                {{ form.temperature }}
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Glucose Type</label>
+            <div class="glucose-toggle">
+                <input type="radio" name="glucose_type" id="glucose-fbs" value="FBS" {% if form.glucose_type.value == "FBS" %}checked{% endif %}>
+                <label for="glucose-fbs">FBS (Fasting)</label>
+                <input type="radio" name="glucose_type" id="glucose-rbs" value="RBS" {% if form.glucose_type.value != "FBS" %}checked{% endif %}>
+                <label for="glucose-rbs">RBS (Random)</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.glucose_value.id_for_label }}" class="form-label">Glucose Value (mmol/L)</label>
+            {{ form.glucose_value }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+            {{ form.notes }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.medications.id_for_label }}" class="form-label">Medications Administered</label>
+            {{ form.medications }}
+        </div>
+
+        <div class="flex gap-md">
+            <a href="{% url 'patients:profile' record.patient.id %}" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary">Update Vitals</button>
+        </div>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

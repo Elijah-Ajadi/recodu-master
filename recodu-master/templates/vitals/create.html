@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}Log Vitals - Recodu{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">Log Vitals{% if patient %} - {{ patient.full_name }}{% endif %}</div>
+    <form method="POST" id="vitals-form">
+        {% csrf_token %}
+        {{ form.patient }}
+
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="{{ form.systolic.id_for_label }}" class="form-label">Systolic BP (mmHg)</label>
+                {{ form.systolic }}
+                <span class="text-xs text-muted" id="systolic-hint">Normal: 90-120</span>
+            </div>
+            <div class="form-group">
+                <label for="{{ form.diastolic.id_for_label }}" class="form-label">Diastolic BP (mmHg)</label>
+                {{ form.diastolic }}
+                <span class="text-xs text-muted" id="diastolic-hint">Normal: 60-80</span>
+            </div>
+        </div>
+
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label for="{{ form.pulse.id_for_label }}" class="form-label">Pulse (bpm)</label>
+                {{ form.pulse }}
+                <span class="text-xs text-muted" id="pulse-hint">Normal: 60-100</span>
+            </div>
+            <div class="form-group">
+                <label for="{{ form.temperature.id_for_label }}" class="form-label">Temperature (°C)</label>
+                {{ form.temperature }}
+                <span class="text-xs text-muted" id="temperature-hint">Normal: 36.1-37.2</span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Glucose Type</label>
+            <div class="glucose-toggle">
+                <input type="radio" name="glucose_type" id="glucose-fbs" value="FBS" {% if form.glucose_type.value == "FBS" %}checked{% endif %}>
+                <label for="glucose-fbs">FBS (Fasting)</label>
+                <input type="radio" name="glucose_type" id="glucose-rbs" value="RBS" {% if form.glucose_type.value != "FBS" %}checked{% endif %}>
+                <label for="glucose-rbs">RBS (Random)</label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.glucose_value.id_for_label }}" class="form-label">Glucose Value (mmol/L)</label>
+            {{ form.glucose_value }}
+            <span class="text-xs text-muted" id="glucose-hint">FBS Normal: 3.9-5.5 | RBS Normal: &lt;7.8</span>
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+            {{ form.notes }}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.medications.id_for_label }}" class="form-label">Medications Administered</label>
+            {{ form.medications }}
+        </div>
+
+        {% if form.non_field_errors %}
+        <div class="alert alert-error">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+
+        <div class="flex gap-md" style="flex-wrap: wrap;">
+            {% if patient %}
+            <a href="{% url 'patients:profile' patient.id %}" class="btn btn-outline" style="flex: 1; text-align: center; min-width: 120px;">Cancel</a>
+            {% else %}
+            <a href="{% url 'patients:search' %}" class="btn btn-outline" style="flex: 1; text-align: center; min-width: 120px;">Cancel</a>
+            {% endif %}
+            <button type="submit" class="btn btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Save Vitals</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const inputs = document.querySelectorAll("#vitals-form input[type=number]");
+    inputs.forEach(function (input) {
+        input.addEventListener("input", function () {
+            validateInput(this);
+        });
+    });
+
+    function validateInput(input) {
+        const value = parseFloat(input.value);
+        if (isNaN(value)) {
+            input.classList.remove("input-normal", "input-warning", "input-danger");
+            return;
+        }
+
+        const normalMin = parseFloat(input.dataset.thresholdNormalMin);
+        const normalMax = parseFloat(input.dataset.thresholdNormalMax);
+        const warningMax = parseFloat(input.dataset.thresholdWarningMax);
+        const dangerMin = parseFloat(input.dataset.thresholdDangerMin);
+
+        input.classList.remove("input-normal", "input-warning", "input-danger");
+
+        if (!isNaN(dangerMin) && value >= dangerMin) {
+            input.classList.add("input-danger");
+        } else if (!isNaN(normalMin) && !isNaN(normalMax) && value >= normalMin && value <= normalMax) {
+            input.classList.add("input-normal");
+        } else if (!isNaN(warningMax) && value > normalMax && value <= warningMax) {
+            input.classList.add("input-warning");
+        } else if (!isNaN(dangerMin) && value >= dangerMin) {
+            input.classList.add("input-danger");
+        }
+    }
+
+    const glucoseInputs = document.querySelectorAll('input[name="glucose_type"]');
+    const glucoseValue = document.getElementById("{{ form.glucose_value.id_for_label }}");
+    const glucoseHint = document.getElementById("glucose-hint");
+
+    glucoseInputs.forEach(function (input) {
+        input.addEventListener("change", function () {
+            if (this.value === "FBS") {
+                glucoseHint.textContent = "FBS Normal: 3.9-5.5 mmol/L";
+                glucoseValue.dataset.thresholdNormalMin = "3.9";
+                glucoseValue.dataset.thresholdNormalMax = "5.5";
+                glucoseValue.dataset.thresholdWarningMax = "6.9";
+                glucoseValue.dataset.thresholdDangerMin = "7.0";
+            } else {
+                glucoseHint.textContent = "RBS Normal: <7.8 mmol/L";
+                glucoseValue.dataset.thresholdNormalMin = "0";
+                glucoseValue.dataset.thresholdNormalMax = "7.8";
+                glucoseValue.dataset.thresholdWarningMax = "11.0";
+                glucoseValue.dataset.thresholdDangerMin = "11.1";
+            }
+            validateInput(glucoseValue);
+        });
+    });
+
+    if (document.getElementById("glucose-fbs").checked) {
+        glucoseValue.dataset.thresholdNormalMin = "3.9";
+        glucoseValue.dataset.thresholdNormalMax = "5.5";
+        glucoseValue.dataset.thresholdWarningMax = "6.9";
+        glucoseValue.dataset.thresholdDangerMin = "7.0";
+    } else {
+        glucoseValue.dataset.thresholdNormalMin = "0";
+        glucoseValue.dataset.thresholdNormalMax = "7.8";
+        glucoseValue.dataset.thresholdWarningMax = "11.0";
+        glucoseValue.dataset.thresholdDangerMin = "11.1";
+    }
+});
+</script>
+{% endblock %}

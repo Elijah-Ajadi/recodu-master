@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ patient.full_name }} - Recodu{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="mb-md">
+        <h2 style="font-size: var(--text-xl); font-weight: 700;">{{ patient.full_name }}</h2>
+        <p class="text-sm text-muted">{{ patient.phone }}</p>
+        <p class="text-sm text-muted">{{ patient.get_gender_display }} &middot; {{ patient.age_range }}</p>
+    </div>
+
+    <div class="flex gap-sm mb-md" style="flex-wrap: wrap;">
+        <a href="{% url 'patients:edit_profile' patient.id %}" class="btn btn-outline" style="flex: 1; text-align: center;">Edit Profile</a>
+        <a href="{% url 'vitals:create' %}?patient={{ patient.id }}" class="btn btn-primary" style="flex: 1; text-align: center;">Log Vitals</a>
+    </div>
+
+    <div class="flex gap-sm mb-md" style="flex-wrap: wrap;">
+        {% if patient.blood_group %}
+        <span class="badge badge-danger" style="font-size: var(--text-base); padding: var(--spacing-sm) var(--spacing-md); border: 2px solid var(--color-danger);">{{ patient.blood_group }}</span>
+        {% else %}
+        <span class="badge badge-neutral">Blood Group: Unknown</span>
+        {% endif %}
+        {% if patient.genotype %}
+        <span class="badge badge-primary" style="font-size: var(--text-base); padding: var(--spacing-sm) var(--spacing-md);">{{ patient.genotype }}</span>
+        {% else %}
+        <span class="badge badge-neutral">Genotype: Unknown</span>
+        {% endif %}
+    </div>
+
+    <div class="mb-md">
+        {% if patient.conditions_list %}
+            {% for condition in patient.conditions_list %}
+            <span class="tag" style="background-color: var(--color-danger-light); color: var(--color-danger); border: 1px solid var(--color-danger);">{{ condition }}</span>
+            {% endfor %}
+        {% else %}
+            <span class="tag tag-none">No Known Conditions</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">Recent Vitals</div>
+    {% if patient.vitalsrecord_set.all %}
+        {% for vitals in patient.vitalsrecord_set.all|slice:":5" %}
+        <div class="history-card {% if vitals.is_critical %}danger{% elif vitals.is_elevated %}warning{% else %}normal{% endif %}">
+            <div class="flex justify-between items-center mb-sm">
+                <span class="text-sm text-muted">{{ vitals.recorded_at|date:"M d, Y H:i" }}</span>
+                <span class="text-xs text-muted">{{ vitals.recorded_by.username }}</span>
+            </div>
+            <div class="grid grid-2 mt-sm">
+                <div>
+                    <span class="text-xs text-muted">BP</span>
+                    <p class="font-bold">{{ vitals.systolic|default:"—" }}/{{ vitals.diastolic|default:"—" }}</p>
+                </div>
+                <div>
+                    <span class="text-xs text-muted">Pulse</span>
+                    <p class="font-bold">{{ vitals.pulse|default:"—" }} bpm</p>
+                </div>
+                <div>
+                    <span class="text-xs text-muted">Temp</span>
+                    <p class="font-bold">{{ vitals.temperature|default:"—" }}&deg;C</p>
+                </div>
+                <div>
+                    <span class="text-xs text-muted">Glucose ({{ vitals.glucose_type }})</span>
+                    <p class="font-bold">{{ vitals.glucose_value|default:"—" }} mmol/L</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        <a href="{% url 'patients:history' patient.id %}" class="btn btn-outline btn-sm mt-md" style="width: 100%; text-align: center;">View Full History</a>
+    {% else %}
+        <p class="text-muted text-center">No vitals recorded yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

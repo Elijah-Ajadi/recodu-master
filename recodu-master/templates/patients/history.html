@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}History - {{ patient.full_name }} - Recodu{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="flex justify-between items-center">
+        <div>
+            <h2 style="font-size: var(--text-2xl); font-weight: 700;">{{ patient.full_name }}</h2>
+            <p class="text-muted">Vitals History</p>
+        </div>
+        <div class="flex gap-sm">
+            <button id="view-list" class="btn btn-primary btn-sm">List</button>
+            <button id="view-chart" class="btn btn-outline btn-sm">Chart</button>
+        </div>
+    </div>
+</div>
+
+<div id="list-view">
+    {% for item in vitals_with_indicators %}
+    <div class="card history-card {% if item.record.is_critical %}danger{% elif item.record.is_elevated %}warning{% else %}normal{% endif %}">
+        <div class="flex justify-between items-center mb-sm">
+            <span class="text-sm font-bold">{{ item.record.recorded_at|date:"M d, Y H:i" }}</span>
+            <div class="flex gap-sm">
+                {% if item.record.is_editable or user.is_unit_head %}
+                <a href="{% url 'vitals:edit' item.record.id %}" class="btn btn-outline btn-sm">Edit</a>
+                {% else %}
+                <span class="badge badge-warning">Locked</span>
+                {% endif %}
+                <button class="btn btn-outline btn-sm" data-notes="{{ item.record.id }}">Notes</button>
+            </div>
+        </div>
+        <div class="grid grid-2">
+            <div>
+                <span class="text-xs text-muted">BP</span>
+                <p class="font-bold">
+                    {{ item.record.systolic|default:"—" }}/{{ item.record.diastolic|default:"—" }}
+                    {% if item.prev and item.record.systolic and item.prev.systolic %}
+                        {% if item.record.systolic > item.prev.systolic %}
+                        <span class="indicator-up">↑</span>
+                        {% elif item.record.systolic < item.prev.systolic %}
+                        <span class="indicator-down">↓</span>
+                        {% else %}
+                        <span class="indicator-same">→</span>
+                        {% endif %}
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                <span class="text-xs text-muted">Pulse</span>
+                <p class="font-bold">
+                    {{ item.record.pulse|default:"—" }} bpm
+                    {% if item.prev and item.record.pulse and item.prev.pulse %}
+                        {% if item.record.pulse > item.prev.pulse %}
+                        <span class="indicator-up">↑</span>
+                        {% elif item.record.pulse < item.prev.pulse %}
+                        <span class="indicator-down">↓</span>
+                        {% endif %}
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                <span class="text-xs text-muted">Temp</span>
+                <p class="font-bold">
+                    {{ item.record.temperature|default:"—" }}°C
+                    {% if item.prev and item.record.temperature and item.prev.temperature %}
+                        {% if item.record.temperature > item.prev.temperature %}
+                        <span class="indicator-up">↑</span>
+                        {% elif item.record.temperature < item.prev.temperature %}
+                        <span class="indicator-down">↓</span>
+                        {% endif %}
+                    {% endif %}
+                </p>
+            </div>
+            <div>
+                <span class="text-xs text-muted">Glucose ({{ item.record.glucose_type }})</span>
+                <p class="font-bold">
+                    {{ item.record.glucose_value|default:"—" }} mmol/L
+                    {% if item.prev and item.record.glucose_value and item.prev.glucose_value %}
+                        {% if item.record.glucose_value > item.prev.glucose_value %}
+                        <span class="indicator-up">↑</span>
+                        {% elif item.record.glucose_value < item.prev.glucose_value %}
+                        <span class="indicator-down">↓</span>
+                        {% endif %}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        {% if item.record.correction_requested %}
+        <div class="mt-sm">
+            <span class="badge badge-warning">Correction Requested: {{ item.record.correction_reason }}</span>
+        </div>
+        {% endif %}
+    </div>
+
+    <div id="notes-{{ item.record.id }}" class="notes-drawer">
+        <div class="flex justify-between items-center mb-lg">
+            <h3>Visit Notes</h3>
+            <button class="modal-close notes-close">&times;</button>
+        </div>
+        <p class="text-sm text-muted mb-md">Recorded by <strong>{{ item.record.recorded_by.username }}</strong> on {{ item.record.recorded_at|date:"M d, Y H:i" }}</p>
+        <div class="mb-md">
+            <h4 class="text-sm font-bold mb-sm">Notes</h4>
+            <p>{{ item.record.notes|default:"No notes recorded."|linebreaks }}</p>
+        </div>
+        <div>
+            <h4 class="text-sm font-bold mb-sm">Medications Administered</h4>
+            <p>{{ item.record.medications|default:"None."|linebreaks }}</p>
+        </div>
+    </div>
+    {% empty %}
+    <div class="card text-center text-muted">No vitals recorded yet.</div>
+    {% endfor %}
+</div>
+
+<div id="chart-view" style="display: none;">
+    <div class="card">
+        <div class="card-header">Trends</div>
+        <canvas id="vitals-chart" height="300"></canvas>
+    </div>
+</div>
+
+<div id="notes-overlay" class="notes-drawer-overlay"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const listView = document.getElementById("list-view");
+    const chartView = document.getElementById("chart-view");
+    const viewListBtn = document.getElementById("view-list");
+    const viewChartBtn = document.getElementById("view-chart");
+
+    viewListBtn.addEventListener("click", function () {
+        listView.style.display = "block";
+        chartView.style.display = "none";
+        viewListBtn.className = "btn btn-primary btn-sm";
+        viewChartBtn.className = "btn btn-outline btn-sm";
+    });
+
+    viewChartBtn.addEventListener("click", function () {
+        listView.style.display = "none";
+        chartView.style.display = "block";
+        viewChartBtn.className = "btn btn-primary btn-sm";
+        viewListBtn.className = "btn btn-outline btn-sm";
+        initChart();
+    });
+
+    document.querySelectorAll("[data-notes]").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            const id = this.dataset.notes;
+            document.getElementById("notes-" + id).classList.add("active");
+            document.getElementById("notes-overlay").classList.add("active");
+        });
+    });
+
+    document.querySelectorAll(".notes-close").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+            this.closest(".notes-drawer").classList.remove("active");
+            document.getElementById("notes-overlay").classList.remove("active");
+        });
+    });
+
+    document.getElementById("notes-overlay").addEventListener("click", function () {
+        this.classList.remove("active");
+        document.querySelectorAll(".notes-drawer.active").forEach(function (drawer) {
+            drawer.classList.remove("active");
+        });
+    });
+
+    let chartInitialized = false;
+    function initChart() {
+        if (chartInitialized) return;
+        chartInitialized = true;
+
+        const ctx = document.getElementById("vitals-chart").getContext("2d");
+        new Chart(ctx, {
+            type: "line",
+            data: {
+                labels: {{ chart_data.labels|safe }},
+                datasets: [
+                    {
+                        label: "Systolic",
+                        data: {{ chart_data.systolic|safe }},
+                        borderColor: "#dc2626",
+                        tension: 0.3,
+                    },
+                    {
+                        label: "Diastolic",
+                        data: {{ chart_data.diastolic|safe }},
+                        borderColor: "#2563eb",
+                        tension: 0.3,
+                    },
+                    {
+                        label: "Pulse",
+                        data: {{ chart_data.pulse|safe }},
+                        borderColor: "#16a34a",
+                        tension: 0.3,
+                    },
+                    {
+                        label: "Temperature",
+                        data: {{ chart_data.temperature|safe }},
+                        borderColor: "#d97706",
+                        tension: 0.3,
+                    },
+                    {
+                        label: "Glucose",
+                        data: {{ chart_data.glucose|safe }},
+                        borderColor: "#8b5cf6",
+                        tension: 0.3,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: {
+                    intersect: false,
+                    mode: "index",
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
