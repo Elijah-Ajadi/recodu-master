@@ -1,3 +1,4 @@
+from datetime import date
 from django.db import models
 from django.core.validators import RegexValidator
 
@@ -48,7 +49,8 @@ class Patient(models.Model):
         validators=[RegexValidator(regex=r"^[\+]?[\d\s\-]{7,15}$", message="Enter a valid phone number.")],
     )
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
-    age_range = models.CharField(max_length=5, choices=AGE_RANGE_CHOICES)
+    age_range = models.CharField(max_length=5, choices=AGE_RANGE_CHOICES, blank=True)
+    date_of_birth = models.DateField(null=True, blank=True)
     home_address = models.CharField(max_length=255, blank=True, default="")
     blood_group = models.CharField(max_length=3, choices=BLOOD_GROUPS, blank=True, default="")
     genotype = models.CharField(max_length=3, choices=GENOTYPES, blank=True, default="")
@@ -69,6 +71,38 @@ class Patient(models.Model):
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
+
+    @property
+    def current_age(self):
+        if not self.date_of_birth:
+            return None
+        today = date.today()
+        age = today.year - self.date_of_birth.year - ((today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day))
+        return age
+
+    @property
+    def days_to_birthday(self):
+        if not self.date_of_birth:
+            return None
+        today = date.today()
+        next_birthday = date(today.year, self.date_of_birth.month, self.date_of_birth.day)
+        if next_birthday < today:
+            next_birthday = date(today.year + 1, self.date_of_birth.month, self.date_of_birth.day)
+        return (next_birthday - today).days
+
+    def save(self, *args, **kwargs):
+        if self.date_of_birth and not self.age_range:
+            age = self.current_age
+            if age <= 5: self.age_range = "0-5"
+            elif age <= 12: self.age_range = "6-12"
+            elif age <= 17: self.age_range = "13-17"
+            elif age <= 25: self.age_range = "18-25"
+            elif age <= 35: self.age_range = "26-35"
+            elif age <= 45: self.age_range = "36-45"
+            elif age <= 55: self.age_range = "46-55"
+            elif age <= 65: self.age_range = "56-65"
+            else: self.age_range = "65+"
+        super().save(*args, **kwargs)
 
     @property
     def conditions_list(self):

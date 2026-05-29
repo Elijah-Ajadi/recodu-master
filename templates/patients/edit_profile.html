@@ -28,9 +28,15 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <label class="form-label">Home Address</label>
-            <input type="text" name="home_address" class="form-input" value="{{ patient.home_address }}" placeholder="e.g. 123 Health St, Lagos">
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label class="form-label">Home Address</label>
+                <input type="text" name="home_address" class="form-input" value="{{ patient.home_address }}" placeholder="e.g. 123 Health St, Lagos">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" name="date_of_birth" class="form-input" value="{{ patient.date_of_birth|date:'Y-m-d' }}">
+            </div>
         </div>
 
         <div class="form-group">

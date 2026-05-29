@@ -10,7 +10,21 @@
         {% if patient.home_address %}
         <p class="text-sm text-muted">📍 {{ patient.home_address }}</p>
         {% endif %}
-        <p class="text-sm text-muted">{{ patient.get_gender_display }} &middot; {{ patient.age_range }}</p>
+        <div class="flex items-center gap-sm mt-xs">
+            <span class="badge badge-primary">
+                {% if patient.current_age %}
+                    {{ patient.current_age }} years
+                {% else %}
+                    {{ patient.age_range }}
+                {% endif %}
+            </span>
+            {% if patient.date_of_birth %}
+            <span class="badge badge-success" title="Birthday: {{ patient.date_of_birth|date:'M d' }}">
+                🎂 {% if patient.days_to_birthday == 0 %}Tomorrow!{% else %}In {{ patient.days_to_birthday }} days{% endif %}
+            </span>
+            {% endif %}
+        </div>
+        <p class="text-xs text-muted mt-sm">{{ patient.get_gender_display }} &middot; Records since {{ patient.created_at|date:"M Y" }}</p>
     </div>
 
     <div class="flex gap-sm mb-md" style="flex-wrap: wrap;">

@@ -68,6 +68,7 @@ def edit_profile(request, pk):
         patient.blood_group = request.POST.get("blood_group", "")
         patient.genotype = request.POST.get("genotype", "")
         patient.home_address = request.POST.get("home_address", "")
+        patient.date_of_birth = request.POST.get("date_of_birth") or None
         patient.known_conditions = request.POST.get("known_conditions", "")
         patient.save()
         messages.success(request, "Medical profile updated.")
