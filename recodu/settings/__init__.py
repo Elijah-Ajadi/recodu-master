@@ -1,7 +1,6 @@
 from .base import *
 
-DEBUG = True
-ALLOWED_HOSTS = ["*"]
+# DEBUG and ALLOWED_HOSTS are imported from base.py
 
 import dj_database_url
 
