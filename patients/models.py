@@ -49,6 +49,7 @@ class Patient(models.Model):
     )
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
     age_range = models.CharField(max_length=5, choices=AGE_RANGE_CHOICES)
+    home_address = models.CharField(max_length=255, blank=True, default="")
     blood_group = models.CharField(max_length=3, choices=BLOOD_GROUPS, blank=True, default="")
     genotype = models.CharField(max_length=3, choices=GENOTYPES, blank=True, default="")
     known_conditions = models.TextField(blank=True, default="", help_text="Comma-separated list of conditions")

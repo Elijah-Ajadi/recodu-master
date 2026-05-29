@@ -5,15 +5,16 @@ from .models import Patient
 class PatientForm(forms.ModelForm):
     class Meta:
         model = Patient
-        fields = ["first_name", "last_name", "phone", "gender", "age_range", "blood_group", "genotype", "known_conditions"]
+        fields = ["first_name", "last_name", "phone", "gender", "age_range", "home_address", "blood_group", "genotype", "known_conditions"]
         widgets = {
             "first_name": forms.TextInput(attrs={"class": "form-input", "tabindex": "1"}),
             "last_name": forms.TextInput(attrs={"class": "form-input", "tabindex": "2"}),
             "phone": forms.TextInput(attrs={"class": "form-input", "tabindex": "3"}),
             "gender": forms.Select(attrs={"class": "form-input", "tabindex": "4"}),
             "age_range": forms.Select(attrs={"class": "form-input", "tabindex": "5"}),
-            "blood_group": forms.Select(attrs={"class": "form-input", "tabindex": "6"}),
-            "genotype": forms.Select(attrs={"class": "form-input", "tabindex": "7"}),
+            "home_address": forms.TextInput(attrs={"class": "form-input", "tabindex": "6", "placeholder": "Home Address"}),
+            "blood_group": forms.Select(attrs={"class": "form-input", "tabindex": "7"}),
+            "genotype": forms.Select(attrs={"class": "form-input", "tabindex": "8"}),
             "known_conditions": forms.Textarea(attrs={"class": "form-input", "rows": "3"}),
         }
 
@@ -21,11 +22,12 @@ class PatientForm(forms.ModelForm):
 class PatientRegistrationForm(forms.ModelForm):
     class Meta:
         model = Patient
-        fields = ["first_name", "last_name", "phone", "gender", "age_range"]
+        fields = ["first_name", "last_name", "phone", "gender", "age_range", "home_address"]
         widgets = {
             "first_name": forms.TextInput(attrs={"class": "form-input", "tabindex": "1", "autofocus": True}),
             "last_name": forms.TextInput(attrs={"class": "form-input", "tabindex": "2"}),
             "phone": forms.TextInput(attrs={"class": "form-input", "tabindex": "3"}),
             "gender": forms.Select(attrs={"class": "form-input", "tabindex": "4"}),
             "age_range": forms.Select(attrs={"class": "form-input", "tabindex": "5"}),
+            "home_address": forms.TextInput(attrs={"class": "form-input", "tabindex": "6", "placeholder": "Home Address"}),
         }

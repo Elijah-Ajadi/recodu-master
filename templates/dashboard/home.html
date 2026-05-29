@@ -1,64 +1,104 @@
 {% extends 'base.html' %}
 
-{% block title %}Dashboard - Recodu{% endblock %}
+{% block title %}Dashboard - SBCO MedApp{% endblock %}
 
 {% block content %}
-<h2 style="font-size: var(--text-xl); font-weight: 700; margin-bottom: var(--spacing-lg);">Service Summary</h2>
+<div class="section-header mb-lg">
+    <h1 class="text-3xl">Service Overview</h1>
+    <p class="text-muted">Real-time health monitoring and unit statistics.</p>
+</div>
 
-<div class="grid grid-3 mb-lg">
-    <div class="card stat-card">
+<!-- Stats Grid -->
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-icon">📈</div>
         <div class="stat-value">{{ total_checked }}</div>
         <div class="stat-label">Total Checked Today</div>
     </div>
-    <div class="card stat-card">
+    <div class="stat-card">
+        <div class="stat-icon" style="background-color: var(--color-danger-light); color: var(--color-danger);">🚨</div>
         <div class="stat-value" style="color: var(--color-danger);">{{ high_risk }}</div>
         <div class="stat-label">High-Risk Anomalies</div>
     </div>
-    <div class="card stat-card">
+    <div class="stat-card">
+        <div class="stat-icon" style="background-color: var(--color-warning-light); color: var(--color-warning);">📝</div>
         <div class="stat-value" style="color: var(--color-warning);">{{ correction_requests.count }}</div>
         <div class="stat-label">Pending Corrections</div>
     </div>
 </div>
 
-{% if correction_requests %}
-<div class="card">
-    <div class="card-header">Correction Requests</div>
-    {% for record in correction_requests %}
-    <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--color-gray-100);">
-        <div class="mb-sm">
-            <strong>{{ record.patient.full_name }}</strong>
-            <span class="text-sm text-muted"> - {{ record.recorded_at|date:"M d, H:i" }}</span>
+<div class="grid grid-2" style="grid-template-columns: 1.2fr 1fr; gap: var(--space-lg);">
+    <!-- Recent Activity -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Recent Activity</h3>
+            <span class="badge badge-primary">{{ recent_vitals|length }} Records</span>
         </div>
-        <p class="text-sm mb-sm">{{ record.correction_reason }}</p>
-        <div class="flex gap-sm">
-            <a href="{% url 'vitals:edit' record.id %}" class="btn btn-outline btn-sm">Edit</a>
-            <form action="{% url 'dashboard:approve_correction' record.id %}" method="POST" style="display: inline;">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-success btn-sm">Approve</button>
-            </form>
+        <div class="activity-list">
+            {% for v in recent_vitals %}
+            <div class="activity-item" style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--color-border);">
+                <div class="flex justify-between items-center mb-xs">
+                    <a href="{% url 'patients:profile' v.patient.id %}" class="font-bold" style="color: var(--color-primary);">{{ v.patient.full_name }}</a>
+                    <span class="text-xs text-muted">{{ v.recorded_at|timesince }} ago</span>
+                </div>
+                <div class="flex gap-md">
+                    <div class="text-xs">
+                        <span class="text-muted">BP:</span> 
+                        <span class="font-bold {% if v.is_critical %}text-danger{% elif v.is_elevated %}text-warning{% endif %}">
+                            {{ v.systolic|default:"—" }}/{{ v.diastolic|default:"—" }}
+                        </span>
+                    </div>
+                    <div class="text-xs">
+                        <span class="text-muted">Pulse:</span> 
+                        <span class="font-bold">{{ v.pulse|default:"—" }}</span>
+                    </div>
+                    <div class="text-xs">
+                        <span class="text-muted">Temp:</span> 
+                        <span class="font-bold">{{ v.temperature|default:"—" }}°C</span>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center py-lg">
+                <p class="text-muted">No patient records found for today.</p>
+            </div>
+            {% endfor %}
         </div>
     </div>
-    {% endfor %}
-</div>
-{% endif %}
 
-<div class="card">
-    <div class="card-header">Recent Activity</div>
-    {% for v in recent_vitals %}
-    <div style="padding: 0.75rem 0; border-bottom: 1px solid var(--color-gray-100);">
-        <div class="mb-sm">
-            <a href="{% url 'patients:profile' v.patient.id %}"><strong>{{ v.patient.full_name }}</strong></a>
-            <span class="text-xs text-muted">{{ v.recorded_at|timesince }} ago</span>
+    <!-- Correction Requests -->
+    {% if correction_requests %}
+    <div class="card">
+        <div class="card-header" style="border-bottom-color: var(--color-warning);">
+            <h3 class="card-title">Pending Corrections</h3>
+            <span class="badge badge-warning">{{ correction_requests|length }} Action Required</span>
         </div>
-        <div class="grid grid-2" style="gap: var(--spacing-xs);">
-            <span class="text-sm text-muted">BP: {{ v.systolic|default:"—" }}/{{ v.diastolic|default:"—" }}</span>
-            <span class="text-sm text-muted">Pulse: {{ v.pulse|default:"—" }}</span>
-            <span class="text-sm text-muted">Temp: {{ v.temperature|default:"—" }}°C</span>
-            <span class="text-sm text-muted">Glucose: {{ v.glucose_value|default:"—" }}</span>
+        <div class="correction-list">
+            {% for record in correction_requests %}
+            <div class="correction-item" style="padding: var(--space-sm) 0; border-bottom: 1px solid var(--color-border);">
+                <div class="flex justify-between mb-xs">
+                    <span class="font-bold">{{ record.patient.full_name }}</span>
+                    <span class="text-xs text-muted">{{ record.recorded_at|date:"M d, H:i" }}</span>
+                </div>
+                <p class="text-sm text-muted mb-sm italic">"{{ record.correction_reason }}"</p>
+                <div class="flex gap-sm">
+                    <a href="{% url 'vitals:edit' record.id %}" class="btn btn-outline btn-sm">Edit Record</a>
+                    <form action="{% url 'dashboard:approve_correction' record.id %}" method="POST" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-primary btn-sm">Approve</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
         </div>
     </div>
-    {% empty %}
-    <p class="text-muted text-center">No activity yet.</p>
-    {% endfor %}
+    {% else %}
+    <div class="card" style="display: flex; align-items: center; justify-content: center; background-color: var(--color-bg); border-style: dashed;">
+        <div class="text-center p-lg">
+            <div style="font-size: 2rem; margin-bottom: 0.5rem;">✅</div>
+            <p class="text-muted">All clear! No pending corrections.</p>
+        </div>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

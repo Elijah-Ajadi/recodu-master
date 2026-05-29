@@ -1,64 +1,104 @@
 {% extends 'base.html' %}
 
-{% block title %}User Management - Recodu{% endblock %}
+{% block title %}User Management - SBCO MedApp{% endblock %}
 
 {% block content %}
-<div class="flex justify-between items-center mb-lg" style="flex-wrap: wrap; gap: var(--spacing-md);">
-    <h2 style="font-size: var(--text-xl); font-weight: 700;">User Management</h2>
-    <a href="{% url 'accounts:register' %}" class="btn btn-primary">Add User</a>
+<div class="section-header mb-lg" style="display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: var(--space-md);">
+    <div>
+        <h1 class="text-3xl">User Management</h1>
+        <p class="text-muted">Manage system access, roles, and volunteer registrations.</p>
+    </div>
+    <a href="{% url 'accounts:register' %}" class="btn btn-primary">
+        <span>➕</span> Add New Volunteer
+    </a>
 </div>
 
-<div class="card" style="overflow-x: auto;">
-    <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
-        <thead>
-            <tr style="border-bottom: 2px solid var(--color-gray-200);">
-                <th style="text-align: left; padding: 0.75rem;">Username</th>
-                <th style="text-align: left; padding: 0.75rem;">Email</th>
-                <th style="text-align: left; padding: 0.75rem;">Role</th>
-                <th style="text-align: left; padding: 0.75rem;">Status</th>
-                <th style="text-align: left; padding: 0.75rem;">Joined</th>
-                <th style="text-align: left; padding: 0.75rem;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for u in users %}
-            <tr style="border-bottom: 1px solid var(--color-gray-100);">
-                <td style="padding: 0.75rem;">{{ u.username }}</td>
-                <td style="padding: 0.75rem;">{{ u.email|default:"—" }}</td>
-                <td style="padding: 0.75rem;">
-                    {% if u.is_unit_head %}
-                    <span class="badge badge-primary">Unit Head</span>
-                    {% else %}
-                    <span class="badge badge-neutral">Volunteer</span>
-                    {% endif %}
-                </td>
-                <td style="padding: 0.75rem;">
-                    {% if u.is_active %}
-                    <span class="badge badge-success">Active</span>
-                    {% else %}
-                    <span class="badge badge-danger">Inactive</span>
-                    {% endif %}
-                </td>
-                <td style="padding: 0.75rem;" class="text-sm text-muted">{{ u.date_joined|date:"M d, Y" }}</td>
-                <td style="padding: 0.75rem;">
-                    {% if u.id != user.id %}
-                    <form action="{% url 'dashboard:toggle_user' u.id %}" method="POST" style="display: inline;">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm {% if u.is_active %}btn-danger{% else %}btn-success{% endif %}">
-                            {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
-                        </button>
-                    </form>
-                    {% else %}
-                    <span class="text-xs text-muted">Current user</span>
-                    {% endif %}
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" class="text-center text-muted" style="padding: 1.5rem;">No users found.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="card p-0" style="overflow: hidden;">
+    <div class="table-responsive">
+        <table>
+            <thead>
+                <tr>
+                    <th>Staff Member</th>
+                    <th>Email Address</th>
+                    <th>Role</th>
+                    <th>System Status</th>
+                    <th>Joined</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>
+                        <div class="flex items-center gap-sm">
+                            <div style="width: 32px; height: 32px; background: var(--color-primary-light); color: var(--color-primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem;">
+                                {{ u.username|slice:":1"|upper }}
+                            </div>
+                            <span class="font-bold">{{ u.username }}</span>
+                            {% if u.id == user.id %}
+                            <span class="text-xs badge badge-primary" style="font-size: 0.65rem;">You</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>{{ u.email|default:"—" }}</td>
+                    <td>
+                        {% if u.is_unit_head %}
+                        <span class="badge badge-primary">Unit Head</span>
+                        {% else %}
+                        <span class="badge badge-warning">Volunteer</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.is_active %}
+                        <span class="badge badge-success">Active</span>
+                        {% else %}
+                        <span class="badge badge-danger">Suspended</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-sm text-muted">{{ u.date_joined|date:"M d, Y" }}</td>
+                    <td style="text-align: right;">
+                        <div class="flex gap-sm justify-end">
+                            {% if u.id != user.id %}
+                                <!-- Role Toggle -->
+                                <form action="{% url 'dashboard:change_role' u.id %}" method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline btn-sm" title="{% if u.is_unit_head %}Downgrade to Volunteer{% else %}Upgrade to Unit Head{% endif %}">
+                                        {% if u.is_unit_head %}📉 Demote{% else %}📈 Promote{% endif %}
+                                    </button>
+                                </form>
+
+                                <!-- Status Toggle -->
+                                <form action="{% url 'dashboard:toggle_user' u.id %}" method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm {% if u.is_active %}btn-danger{% else %}btn-success{% endif %}">
+                                        {% if u.is_active %}Suspend{% else %}Activate{% endif %}
+                                    </button>
+                                </form>
+                            {% else %}
+                                <span class="text-xs text-muted italic">No actions</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center py-xl">
+                        <p class="text-muted">No volunteers found in the system.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="mt-lg">
+    <div class="card" style="background-color: var(--color-primary-light); border-color: var(--color-primary); display: flex; align-items: start; gap: var(--space-md);">
+        <div style="font-size: 1.5rem;">💡</div>
+        <div>
+            <h4 class="font-bold" style="color: var(--color-primary);">Unit Head Permissions</h4>
+            <p class="text-sm" style="color: var(--color-primary);">Unit Heads can access all unit-wide analytics, approve vitals corrections, and manage other users. Use the "Promote" feature carefully.</p>
+        </div>
+    </div>
 </div>
 {% endblock %}

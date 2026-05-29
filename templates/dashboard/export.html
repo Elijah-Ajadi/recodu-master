@@ -1,24 +1,48 @@
 {% extends 'base.html' %}
 
-{% block title %}Export Data - Recodu{% endblock %}
+{% block title %}Export Clinical Data - SBCO MedApp{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 600px; margin: 0 auto;">
-    <div class="card-header">Export Data</div>
-    <p class="text-muted mb-lg">Download patient vitals data as a CSV file. Optionally filter by date range.</p>
-    <form method="POST">
-        {% csrf_token %}
-        <div class="grid grid-2">
-            <div class="form-group">
-                <label class="form-label">Start Date</label>
-                <input type="date" name="start_date" class="form-input">
-            </div>
-            <div class="form-group">
-                <label class="form-label">End Date</label>
-                <input type="date" name="end_date" class="form-input">
-            </div>
+<div class="section-py" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 150px);">
+    <div class="card" style="width: 100%; max-width: 560px; box-shadow: var(--shadow-lg); padding: var(--space-xl);">
+        <div class="text-center mb-lg">
+            <div style="font-size: 3rem; margin-bottom: var(--space-sm);">📊</div>
+            <h1 class="text-2xl">Export Health Records</h1>
+            <p class="text-muted">Generate a secure CSV export of patient clinical data.</p>
         </div>
-        <button type="submit" class="btn btn-primary" style="width: 100%;">Download CSV</button>
-    </form>
+
+        <div class="alert badge-primary mb-lg" style="border: none; background-color: var(--color-bg);">
+            <div style="font-size: 1.2rem;">ℹ️</div>
+            <p class="text-xs">Exports contain full patient clinical history including BP, Pulse, Glucose, and Temperature within the selected range.</p>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            <div class="grid grid-2 mb-lg" style="gap: var(--space-md);">
+                <div class="form-group">
+                    <label class="form-label">Start Date</label>
+                    <input type="date" name="start_date" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">End Date</label>
+                    <input type="date" name="end_date" class="form-input">
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-sm">
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <span>⬇️</span> Prepare and Download CSV
+                </button>
+                <a href="{% url 'dashboard:home' %}" class="btn btn-outline" style="width: 100%;">Return to Dashboard</a>
+            </div>
+        </form>
+        
+        <div class="mt-xl pt-lg" style="border-top: 1px solid var(--color-border);">
+            <p class="text-center text-xs text-muted">
+                Data exported from this system is confidential. <br>
+                Please handle according to clinical data privacy standards.
+            </p>
+        </div>
+    </div>
 </div>
 {% endblock %}

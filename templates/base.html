@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Recodu{% endblock %}</title>
+    <title>{% block title %}SBCO MedApp{% endblock %}</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% block extra_css %}{% endblock %}
 </head>
@@ -12,7 +12,7 @@
     {% if user.is_authenticated %}
     <nav class="navbar">
         <div class="container">
-            <a href="{% if user.is_unit_head %}{% url 'dashboard:home' %}{% else %}{% url 'patients:search' %}{% endif %}" class="navbar-brand">Recodu</a>
+            <a href="{% if user.is_unit_head %}{% url 'dashboard:home' %}{% else %}{% url 'patients:search' %}{% endif %}" class="navbar-brand">SBCO MedApp</a>
             <ul class="navbar-nav">
                 {% if user.is_unit_head %}
                 <li><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
@@ -24,7 +24,7 @@
                 <li>
                     <form action="{% url 'accounts:logout' %}" method="POST" style="display: inline;">
                         {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline btn-logout">Logout</button>
+                        <button type="submit" class="btn btn-sm btn-danger">Logout</button>
                     </form>
                 </li>
             </ul>

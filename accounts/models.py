@@ -10,7 +10,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=ROLE_CHOICES, default="VOLUNTEER")
 
     def is_unit_head(self):
-        return self.role == "UNIT_HEAD"
+        return self.role == "UNIT_HEAD" or self.is_superuser
 
     def is_volunteer(self):
         return self.role == "VOLUNTEER"

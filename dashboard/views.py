@@ -113,3 +113,15 @@ def export(request):
         return response
 
     return render(request, "dashboard/export.html")
+
+@login_required
+@user_passes_test(is_unit_head)
+def change_role(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    if user.id == request.user.id:
+        messages.error(request, "You cannot change your own role.")
+    else:
+        user.role = "UNIT_HEAD" if user.role == "VOLUNTEER" else "VOLUNTEER"
+        user.save()
+        messages.success(request, f"User {user.username} is now a {user.get_role_display()}.")
+    return redirect("dashboard:users")

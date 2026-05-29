@@ -1,51 +1,69 @@
 {% extends 'base.html' %}
 
-{% block title %}Register User - Recodu{% endblock %}
+{% block title %}Register Volunteer - SBCO MedApp{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 500px; margin: 0 auto;">
-    <div class="card-header">Register New User</div>
-    <form method="POST">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="{{ form.username.id_for_label }}" class="form-label">Username</label>
-            {{ form.username }}
-            {% if form.username.errors %}
-            <p class="text-sm" style="color: var(--color-danger);">{{ form.username.errors.0 }}</p>
+<div class="section-py" style="display: flex; align-items: center; justify-content: center; min-height: calc(100vh - 150px);">
+    <div class="card" style="width: 100%; max-width: 480px; box-shadow: var(--shadow-lg);">
+        <div class="card-header" style="border-bottom: none; margin-bottom: var(--space-md);">
+            <div>
+                <h1 class="text-2xl">Register Volunteer</h1>
+                <p class="text-sm text-muted">Create a new staff account for your unit.</p>
+            </div>
+        </div>
+        
+        <form method="POST" novalidate>
+            {% csrf_token %}
+            
+            <div class="form-group">
+                <label for="{{ form.username.id_for_label }}" class="form-label">Choose Username</label>
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%); font-size: 0.9rem; color: var(--color-text-muted);">👤</span>
+                    <input type="text" name="username" id="{{ form.username.id_for_label }}" class="form-input" style="padding-left: 2.5rem;" placeholder="e.g. jdoe_worker">
+                </div>
+                {% if form.username.errors %}
+                <p class="text-xs mt-sm" style="color: var(--color-danger);">{{ form.username.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                <label for="{{ form.email.id_for_label }}" class="form-label">Email Address (Optional)</label>
+                <div style="position: relative;">
+                    <span style="position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%); font-size: 0.9rem; color: var(--color-text-muted);">✉️</span>
+                    <input type="email" name="email" id="{{ form.email.id_for_label }}" class="form-input" style="padding-left: 2.5rem;" placeholder="worker@health.org">
+                </div>
+                {% if form.email.errors %}
+                <p class="text-xs mt-sm" style="color: var(--color-danger);">{{ form.email.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="form-group" style="display: none;">
+                <!-- Role defaults to VOLUNTEER in form, but we can manage it in UI later. 
+                     We keep it hidden here for simplicity and safety. -->
+                {{ form.role.as_hidden }}
+            </div>
+
+            <div class="grid grid-2" style="gap: var(--space-sm);">
+                <div class="form-group">
+                    <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
+                    <input type="password" name="password1" id="{{ form.password1.id_for_label }}" class="form-input" placeholder="••••••••">
+                </div>
+                <div class="form-group">
+                    <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm</label>
+                    <input type="password" name="password2" id="{{ form.password2.id_for_label }}" class="form-input" placeholder="••••••••">
+                </div>
+            </div>
+            {% if form.non_field_errors %}
+            <div class="alert alert-error text-xs mb-md">
+                {{ form.non_field_errors.0 }}
+            </div>
             {% endif %}
-        </div>
-        <div class="form-group">
-            <label for="{{ form.email.id_for_label }}" class="form-label">Email</label>
-            {{ form.email }}
-            {% if form.email.errors %}
-            <p class="text-sm" style="color: var(--color-danger);">{{ form.email.errors.0 }}</p>
-            {% endif %}
-        </div>
-        <div class="form-group">
-            <label for="{{ form.role.id_for_label }}" class="form-label">Role</label>
-            {{ form.role }}
-            {% if form.role.errors %}
-            <p class="text-sm" style="color: var(--color-danger);">{{ form.role.errors.0 }}</p>
-            {% endif %}
-        </div>
-        <div class="form-group">
-            <label for="{{ form.password1.id_for_label }}" class="form-label">Password</label>
-            {{ form.password1 }}
-            {% if form.password1.errors %}
-            <p class="text-sm" style="color: var(--color-danger);">{{ form.password1.errors.0 }}</p>
-            {% endif %}
-        </div>
-        <div class="form-group">
-            <label for="{{ form.password2.id_for_label }}" class="form-label">Confirm Password</label>
-            {{ form.password2 }}
-            {% if form.password2.errors %}
-            <p class="text-sm" style="color: var(--color-danger);">{{ form.password2.errors.0 }}</p>
-            {% endif %}
-        </div>
-        <div class="flex gap-md" style="flex-wrap: wrap;">
-            <a href="{% url 'dashboard:home' %}" class="btn btn-outline" style="flex: 1; text-align: center; min-width: 120px;">Cancel</a>
-            <button type="submit" class="btn btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Register User</button>
-        </div>
-    </form>
+
+            <div class="mt-lg" style="display: flex; gap: var(--space-sm);">
+                <a href="{% url 'dashboard:users' %}" class="btn btn-outline" style="flex: 1;">Cancel</a>
+                <button type="submit" class="btn btn-primary" style="flex: 1.5;">Create Account</button>
+            </div>
+        </form>
+    </div>
 </div>
 {% endblock %}

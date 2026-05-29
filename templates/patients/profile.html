@@ -7,6 +7,9 @@
     <div class="mb-md">
         <h2 style="font-size: var(--text-xl); font-weight: 700;">{{ patient.full_name }}</h2>
         <p class="text-sm text-muted">{{ patient.phone }}</p>
+        {% if patient.home_address %}
+        <p class="text-sm text-muted">📍 {{ patient.home_address }}</p>
+        {% endif %}
         <p class="text-sm text-muted">{{ patient.get_gender_display }} &middot; {{ patient.age_range }}</p>
     </div>
 

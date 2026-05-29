@@ -1,38 +1,47 @@
 {% extends 'base.html' %}
 
-{% block title %}Edit Profile - {{ patient.full_name }} - Recodu{% endblock %}
+{% block title %}Edit Profile - {{ patient.full_name }} - SBCO MedApp{% endblock %}
 
 {% block content %}
 <div class="card" style="max-width: 600px; margin: 0 auto;">
-    <div class="card-header">Edit Medical Profile - {{ patient.full_name }}</div>
+    <div class="card-header">Edit Profile - {{ patient.full_name }}</div>
     <form method="POST">
         {% csrf_token %}
-        <div class="form-group">
-            <label class="form-label">Blood Group</label>
-            <select name="blood_group" class="form-input">
-                <option value="">Unknown</option>
-                {% for code, label in patient.BLOOD_GROUPS %}
-                <option value="{{ code }}" {% if patient.blood_group == code %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label class="form-label">Blood Group</label>
+                <select name="blood_group" class="form-input">
+                    <option value="">Unknown</option>
+                    {% for code, label in patient.BLOOD_GROUPS %}
+                    <option value="{{ code }}" {% if patient.blood_group == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Genotype</label>
+                <select name="genotype" class="form-input">
+                    <option value="">Unknown</option>
+                    {% for code, label in patient.GENOTYPES %}
+                    <option value="{{ code }}" {% if patient.genotype == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
         </div>
+
         <div class="form-group">
-            <label class="form-label">Genotype</label>
-            <select name="genotype" class="form-input">
-                <option value="">Unknown</option>
-                {% for code, label in patient.GENOTYPES %}
-                <option value="{{ code }}" {% if patient.genotype == code %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
+            <label class="form-label">Home Address</label>
+            <input type="text" name="home_address" class="form-input" value="{{ patient.home_address }}" placeholder="e.g. 123 Health St, Lagos">
         </div>
+
         <div class="form-group">
             <label class="form-label">Known Conditions</label>
             <textarea name="known_conditions" class="form-input" rows="3" placeholder="e.g. Hypertension, Diabetes, Sickle Cell">{{ patient.known_conditions }}</textarea>
             <p class="text-xs text-muted mt-sm">Separate multiple conditions with commas</p>
         </div>
-        <div class="flex gap-md" style="flex-wrap: wrap;">
+
+        <div class="flex gap-md mt-lg" style="flex-wrap: wrap;">
             <a href="{% url 'patients:profile' patient.id %}" class="btn btn-outline" style="flex: 1; text-align: center; min-width: 120px;">Cancel</a>
-            <button type="submit" class="btn btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Save Changes</button>
+            <button type="submit" class="btn btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Update Profile</button>
         </div>
     </form>
 </div>
