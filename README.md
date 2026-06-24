@@ -1,5 +1,3 @@
-![Recodu Hero Banner](docs/images/hero.png)
-
 # Recodu: Smart Health Monitoring & Patient Management
 
 Recodu is a modern, high-performance web application built with Django, designed for medical clinics and volunteer organizations to streamline patient intake and track clinical vitals with precision.
