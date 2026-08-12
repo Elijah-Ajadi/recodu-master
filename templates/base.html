@@ -18,6 +18,7 @@
                 <li><a href="{% url 'dashboard:home' %}">Dashboard</a></li>
                 <li><a href="{% url 'dashboard:users' %}">Users</a></li>
                 <li><a href="{% url 'dashboard:export' %}">Export</a></li>
+                <li><a href="{% url 'dashboard:import_patients' %}">Import</a></li>
                 {% else %}
                 <li><a href="{% url 'patients:search' %}">Intake</a></li>
                 {% endif %}

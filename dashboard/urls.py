@@ -10,4 +10,6 @@ urlpatterns = [
     path("corrections/<int:pk>/approve/", views.approve_correction, name="approve_correction"),
     path("users/<int:pk>/role/", views.change_role, name="change_role"),
     path("export/", views.export, name="export"),
+    path("import/", views.import_patients, name="import_patients"),
+    path("import/template/", views.download_template, name="download_template"),
 ]

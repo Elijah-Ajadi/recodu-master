@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Import Patients — SBCO MedApp{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto;">
+
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+        <div>
+            <h1 style="margin: 0; font-size: 1.5rem;">Mass Patient Import</h1>
+            <p style="margin: 0.25rem 0 0; color: var(--text-muted, #6b7280); font-size: 0.9rem;">
+                Upload a CSV file to register multiple patients at once.
+            </p>
+        </div>
+        <a href="{% url 'dashboard:download_template' %}" class="btn btn-sm" style="text-decoration: none;">
+            ⬇ Download CSV Template
+        </a>
+    </div>
+
+    {% if show_results %}
+    {# ------------------------------------------------------------------ #}
+    {# RESULTS STATE                                                        #}
+    {# ------------------------------------------------------------------ #}
+
+    {% if imported_count > 0 %}
+    <div class="alert alert-success" style="display: flex; align-items: center; gap: 0.6rem; font-weight: 600; font-size: 1rem;">
+        <span style="font-size: 1.3rem;">✅</span>
+        {{ imported_count }} patient{{ imported_count|pluralize }} imported successfully.
+    </div>
+    {% endif %}
+
+    {% if failed_rows %}
+    <div class="alert alert-danger" style="display: flex; align-items: center; gap: 0.6rem; font-weight: 600; font-size: 1rem;">
+        <span style="font-size: 1.3rem;">⚠️</span>
+        {{ failed_rows|length }} row{{ failed_rows|length|pluralize }} failed — review the errors below.
+    </div>
+
+    <div style="overflow-x: auto; margin-bottom: 1.5rem;">
+        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+            <thead>
+                <tr style="background: var(--surface-alt, #f3f4f6); text-align: left;">
+                    <th style="padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--border, #e5e7eb); white-space: nowrap;">Row #</th>
+                    <th style="padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--border, #e5e7eb);">Name</th>
+                    <th style="padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--border, #e5e7eb); white-space: nowrap;">Phone</th>
+                    <th style="padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--border, #e5e7eb);">Error(s)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in failed_rows %}
+                <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                    <td style="padding: 0.55rem 0.75rem; color: var(--text-muted, #6b7280); font-variant-numeric: tabular-nums;">{{ row.row }}</td>
+                    <td style="padding: 0.55rem 0.75rem; font-weight: 500;">{{ row.name }}</td>
+                    <td style="padding: 0.55rem 0.75rem; font-family: monospace;">{{ row.phone }}</td>
+                    <td style="padding: 0.55rem 0.75rem; color: #dc2626;">
+                        {% for err in row.errors %}
+                        <div style="{% if not forloop.last %}margin-bottom: 0.2rem;{% endif %}">• {{ err }}</div>
+                        {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    {% if imported_count == 0 and not failed_rows %}
+    <div class="alert" style="background: var(--surface-alt, #f3f4f6); color: var(--text-muted, #6b7280);">
+        The file was empty or contained no data rows.
+    </div>
+    {% endif %}
+
+    <a href="{% url 'dashboard:import_patients' %}" class="btn" style="text-decoration: none; display: inline-block;">
+        ← Import Another File
+    </a>
+
+    {% else %}
+    {# ------------------------------------------------------------------ #}
+    {# UPLOAD STATE                                                         #}
+    {# ------------------------------------------------------------------ #}
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; flex-wrap: wrap;">
+
+        {# Upload form #}
+        <div class="card" style="padding: 1.5rem;">
+            <h2 style="margin: 0 0 1rem; font-size: 1.1rem;">Upload CSV File</h2>
+            <form method="POST" enctype="multipart/form-data" id="import-form">
+                {% csrf_token %}
+                <div style="margin-bottom: 1.25rem;">
+                    <label for="csv_file" style="display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.4rem;">
+                        Select file <span style="color: #dc2626;">*</span>
+                    </label>
+                    <input
+                        type="file"
+                        name="csv_file"
+                        id="csv_file"
+                        accept=".csv"
+                        required
+                        style="display: block; width: 100%; padding: 0.5rem; border: 1px solid var(--border, #d1d5db); border-radius: 6px; font-size: 0.875rem; cursor: pointer; box-sizing: border-box;"
+                        onchange="updateFileName(this)"
+                    >
+                    <p id="file-hint" style="margin: 0.35rem 0 0; font-size: 0.8rem; color: var(--text-muted, #6b7280);">
+                        Only .csv files are accepted.
+                    </p>
+                </div>
+
+                <div id="upload-info" style="display: none; padding: 0.6rem 0.75rem; background: var(--surface-alt, #f3f4f6); border-radius: 6px; font-size: 0.85rem; margin-bottom: 1rem; word-break: break-all;">
+                </div>
+
+                <button type="submit" class="btn" id="submit-btn" style="width: 100%;">
+                    Import Patients
+                </button>
+            </form>
+        </div>
+
+        {# Column reference #}
+        <div>
+            <h2 style="margin: 0 0 0.75rem; font-size: 1.1rem;">Column Reference</h2>
+            <p style="font-size: 0.825rem; color: var(--text-muted, #6b7280); margin: 0 0 0.75rem;">
+                Use the template above to get started. Required columns are marked with *.
+            </p>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
+                    <thead>
+                        <tr style="background: var(--surface-alt, #f3f4f6); text-align: left;">
+                            <th style="padding: 0.5rem 0.6rem; border-bottom: 2px solid var(--border, #e5e7eb);">Column</th>
+                            <th style="padding: 0.5rem 0.6rem; border-bottom: 2px solid var(--border, #e5e7eb);">Valid Values</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                            <td style="padding: 0.45rem 0.6rem; font-weight: 600;">first_name *</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Any text</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                            <td style="padding: 0.45rem 0.6rem; font-weight: 600;">last_name *</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Any text</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                            <td style="padding: 0.45rem 0.6rem; font-weight: 600;">phone *</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">7–15 digits, optional + prefix</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                            <td style="padding: 0.45rem 0.6rem; font-weight: 600;">gender *</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);"><code>M</code> or <code>F</code></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                            <td style="padding: 0.45rem 0.6rem;">date_of_birth</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);"><code>YYYY-MM-DD</code></td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                            <td style="padding: 0.45rem 0.6rem;">age_range</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">0-5, 6-12, 13-17, 18-25, 26-35, 36-45, 46-55, 56-65, 65+</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                            <td style="padding: 0.45rem 0.6rem;">blood_group</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">A+, A-, B+, B-, AB+, AB-, O+, O-</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                            <td style="padding: 0.45rem 0.6rem;">genotype</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">AA, AS, SS, AC, SC, CC</td>
+                        </tr>
+                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                            <td style="padding: 0.45rem 0.6rem;">known_conditions</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Comma-separated, any text</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0.45rem 0.6rem;">home_address</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Any text</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateFileName(input) {
+    const info = document.getElementById('upload-info');
+    const btn = document.getElementById('submit-btn');
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const sizekb = (file.size / 1024).toFixed(1);
+        info.textContent = `📄 ${file.name} (${sizekb} KB)`;
+        info.style.display = 'block';
+        btn.textContent = 'Import Patients →';
+    } else {
+        info.style.display = 'none';
+        btn.textContent = 'Import Patients';
+    }
+}
+
+// Disable submit button on form submit to prevent double-submit
+document.getElementById('import-form') && document.getElementById('import-form').addEventListener('submit', function() {
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.textContent = 'Importing…';
+});
+</script>
+{% endblock %}
