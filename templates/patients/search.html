@@ -92,73 +92,16 @@
     {% if recent_intakes %}
     <div class="intake-list">
         {% for intake in recent_intakes %}
-        <a href="{% url 'patients:profile' intake.patient.id %}#vitals-{{ intake.id }}" class="intake-activity-card {% if intake.is_critical %}critical{% elif intake.is_elevated %}elevated{% else %}normal{% endif %}">
-            <div class="flex justify-between items-center" style="flex-wrap: wrap; gap: 0.5rem;">
-                <div class="flex items-center gap-sm" style="flex-wrap: wrap;">
-                    <strong style="font-size: 1.05rem; color: var(--color-text);">{{ intake.patient.full_name }}</strong>
-                    {% if intake.patient.phone %}
-                    <span class="text-sm text-muted">📞 {{ intake.patient.phone }}</span>
-                    {% endif %}
-                    {% if intake.patient.gender %}
-                    <span class="badge" style="background: var(--color-bg); border: 1px solid var(--color-border); font-size: 0.7rem;">
-                        {{ intake.patient.get_gender_display }}
-                    </span>
-                    {% endif %}
-                    {% if intake.patient.blood_group %}
-                    <span class="badge badge-danger" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">{{ intake.patient.blood_group }}</span>
-                    {% endif %}
-                    {% if intake.patient.genotype %}
-                    <span class="badge badge-primary" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">{{ intake.patient.genotype }}</span>
-                    {% endif %}
-                </div>
-                <div class="flex items-center gap-sm">
-                    {% if intake.is_critical %}
-                    <span class="badge badge-danger">⚠️ Critical</span>
-                    {% elif intake.is_elevated %}
-                    <span class="badge badge-warning">⚡ Elevated</span>
-                    {% else %}
-                    <span class="badge badge-success">✓ Normal</span>
-                    {% endif %}
-                    <span class="text-xs text-muted">{{ intake.recorded_at|date:"M d, Y · H:i" }}</span>
-                </div>
-            </div>
-
-            <div class="intake-metrics-grid">
-                <div class="intake-metric-item">
-                    <span class="intake-metric-label">Blood Pressure</span>
-                    <span class="intake-metric-value" style="{% if intake.systolic >= 140 or intake.diastolic >= 90 %}color: var(--color-danger);{% elif intake.systolic >= 120 or intake.diastolic >= 80 %}color: var(--color-warning);{% endif %}">
-                        {{ intake.systolic|default:"—" }}/{{ intake.diastolic|default:"—" }} <small style="font-size: 0.7rem; font-weight: normal;">mmHg</small>
-                    </span>
-                </div>
-                <div class="intake-metric-item">
-                    <span class="intake-metric-label">Pulse</span>
-                    <span class="intake-metric-value" style="{% if intake.pulse > 120 or intake.pulse < 60 %}color: var(--color-danger);{% elif intake.pulse >= 100 %}color: var(--color-warning);{% endif %}">
-                        {{ intake.pulse|default:"—" }} <small style="font-size: 0.7rem; font-weight: normal;">bpm</small>
-                    </span>
-                </div>
-                <div class="intake-metric-item">
-                    <span class="intake-metric-label">Temperature</span>
-                    <span class="intake-metric-value" style="{% if intake.temperature > 38.0 or intake.temperature < 36.1 %}color: var(--color-danger);{% elif intake.temperature >= 37.3 %}color: var(--color-warning);{% endif %}">
-                        {{ intake.temperature|default:"—" }} <small style="font-size: 0.7rem; font-weight: normal;">°C</small>
-                    </span>
-                </div>
-                <div class="intake-metric-item">
-                    <span class="intake-metric-label">Glucose ({{ intake.glucose_type }})</span>
-                    <span class="intake-metric-value">
-                        {{ intake.glucose_value|default:"—" }} <small style="font-size: 0.7rem; font-weight: normal;">mmol/L</small>
-                    </span>
-                </div>
-            </div>
-
-            <div class="flex justify-between items-center mt-xs text-xs text-muted">
-                <span>Recorded by <strong>{{ intake.recorded_by.username|default:"Staff" }}</strong></span>
-                <span style="color: var(--color-primary); font-weight: 500;">View Profile &amp; Record →</span>
+        <a href="{% url 'patients:profile' intake.patient.id %}#vitals-{{ intake.id }}" class="intake-activity-card">
+            <div class="flex justify-between items-center" style="gap: 0.75rem;">
+                <strong style="font-size: 1rem; color: var(--color-text);">{{ intake.patient.full_name }}</strong>
+                <span class="text-sm text-muted" style="white-space: nowrap;">{{ intake.recorded_at|date:"M d, Y · H:i" }}</span>
             </div>
         </a>
         {% endfor %}
     </div>
     {% else %}
-    <div style="text-align: center; padding: 2.5rem 1rem; color: var(--color-text-muted);">
+    <div style="text-align: center; padding: 2rem 1rem; color: var(--color-text-muted);">
         <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
         <p style="font-weight: 600; margin-bottom: 0.25rem;">No recent intakes logged yet</p>
         <p class="text-sm">Search for an existing patient above or register a new patient to record vitals.</p>

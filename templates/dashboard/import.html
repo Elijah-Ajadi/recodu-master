@@ -2,16 +2,16 @@
 {% block title %}Import Patients — SBCO MedApp{% endblock %}
 
 {% block content %}
-<div style="max-width: 860px; margin: 0 auto;">
+<div style="max-width: 960px; margin: 0 auto;">
 
-    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+    <div class="flex justify-between items-center mb-lg" style="flex-wrap: wrap; gap: 1rem;">
         <div>
-            <h1 style="margin: 0; font-size: 1.5rem;">Mass Patient Import</h1>
-            <p style="margin: 0.25rem 0 0; color: var(--text-muted, #6b7280); font-size: 0.9rem;">
+            <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700;">Mass Patient Import</h1>
+            <p style="margin: 0.25rem 0 0; color: var(--color-text-muted); font-size: 0.9rem;">
                 Upload a CSV file to register multiple patients at once.
             </p>
         </div>
-        <a href="{% url 'dashboard:download_template' %}" class="btn btn-sm" style="text-decoration: none;">
+        <a href="{% url 'dashboard:download_template' %}" class="btn btn-outline btn-sm" style="text-decoration: none; white-space: nowrap;">
             ⬇ Download CSV Template
         </a>
     </div>
@@ -22,53 +22,55 @@
     {# ------------------------------------------------------------------ #}
 
     {% if imported_count > 0 %}
-    <div class="alert alert-success" style="display: flex; align-items: center; gap: 0.6rem; font-weight: 600; font-size: 1rem;">
-        <span style="font-size: 1.3rem;">✅</span>
+    <div class="alert alert-success mb-md" style="display: flex; align-items: center; gap: 0.6rem; font-weight: 600; font-size: 1rem;">
+        <span style="font-size: 1.25rem;">✅</span>
         {{ imported_count }} patient{{ imported_count|pluralize }} imported successfully.
     </div>
     {% endif %}
 
     {% if failed_rows %}
-    <div class="alert alert-danger" style="display: flex; align-items: center; gap: 0.6rem; font-weight: 600; font-size: 1rem;">
-        <span style="font-size: 1.3rem;">⚠️</span>
+    <div class="alert alert-danger mb-md" style="display: flex; align-items: center; gap: 0.6rem; font-weight: 600; font-size: 1rem;">
+        <span style="font-size: 1.25rem;">⚠️</span>
         {{ failed_rows|length }} row{{ failed_rows|length|pluralize }} failed — review the errors below.
     </div>
 
-    <div style="overflow-x: auto; margin-bottom: 1.5rem;">
-        <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
-            <thead>
-                <tr style="background: var(--surface-alt, #f3f4f6); text-align: left;">
-                    <th style="padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--border, #e5e7eb); white-space: nowrap;">Row #</th>
-                    <th style="padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--border, #e5e7eb);">Name</th>
-                    <th style="padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--border, #e5e7eb); white-space: nowrap;">Phone</th>
-                    <th style="padding: 0.6rem 0.75rem; border-bottom: 2px solid var(--border, #e5e7eb);">Error(s)</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for row in failed_rows %}
-                <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
-                    <td style="padding: 0.55rem 0.75rem; color: var(--text-muted, #6b7280); font-variant-numeric: tabular-nums;">{{ row.row }}</td>
-                    <td style="padding: 0.55rem 0.75rem; font-weight: 500;">{{ row.name }}</td>
-                    <td style="padding: 0.55rem 0.75rem; font-family: monospace;">{{ row.phone }}</td>
-                    <td style="padding: 0.55rem 0.75rem; color: #dc2626;">
-                        {% for err in row.errors %}
-                        <div style="{% if not forloop.last %}margin-bottom: 0.2rem;{% endif %}">• {{ err }}</div>
-                        {% endfor %}
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+    <div class="card mb-lg" style="padding: 0; overflow: hidden;">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                <thead>
+                    <tr style="background: var(--color-bg); text-align: left;">
+                        <th style="padding: 0.75rem 1rem; border-bottom: 2px solid var(--color-border); white-space: nowrap;">Row #</th>
+                        <th style="padding: 0.75rem 1rem; border-bottom: 2px solid var(--color-border);">Name</th>
+                        <th style="padding: 0.75rem 1rem; border-bottom: 2px solid var(--color-border); white-space: nowrap;">Phone</th>
+                        <th style="padding: 0.75rem 1rem; border-bottom: 2px solid var(--color-border);">Error(s)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in failed_rows %}
+                    <tr style="border-bottom: 1px solid var(--color-border);">
+                        <td style="padding: 0.75rem 1rem; color: var(--color-text-muted); font-variant-numeric: tabular-nums;">{{ row.row }}</td>
+                        <td style="padding: 0.75rem 1rem; font-weight: 600;">{{ row.name }}</td>
+                        <td style="padding: 0.75rem 1rem; font-family: monospace;">{{ row.phone }}</td>
+                        <td style="padding: 0.75rem 1rem; color: var(--color-danger);">
+                            {% for err in row.errors %}
+                            <div style="{% if not forloop.last %}margin-bottom: 0.25rem;{% endif %}">• {{ err }}</div>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
     {% endif %}
 
     {% if imported_count == 0 and not failed_rows %}
-    <div class="alert" style="background: var(--surface-alt, #f3f4f6); color: var(--text-muted, #6b7280);">
+    <div class="alert mb-md" style="background: var(--color-bg); color: var(--color-text-muted);">
         The file was empty or contained no data rows.
     </div>
     {% endif %}
 
-    <a href="{% url 'dashboard:import_patients' %}" class="btn" style="text-decoration: none; display: inline-block;">
+    <a href="{% url 'dashboard:import_patients' %}" class="btn btn-outline" style="text-decoration: none; display: inline-block;">
         ← Import Another File
     </a>
 
@@ -77,16 +79,16 @@
     {# UPLOAD STATE                                                         #}
     {# ------------------------------------------------------------------ #}
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; flex-wrap: wrap;">
+    <div class="grid grid-2" style="align-items: start; gap: var(--space-md);">
 
         {# Upload form #}
-        <div class="card" style="padding: 1.5rem;">
-            <h2 style="margin: 0 0 1rem; font-size: 1.1rem;">Upload CSV File</h2>
+        <div class="card">
+            <h2 style="margin: 0 0 1rem; font-size: 1.15rem; font-weight: 700;">Upload CSV File</h2>
             <form method="POST" enctype="multipart/form-data" id="import-form">
                 {% csrf_token %}
-                <div style="margin-bottom: 1.25rem;">
-                    <label for="csv_file" style="display: block; font-size: 0.875rem; font-weight: 600; margin-bottom: 0.4rem;">
-                        Select file <span style="color: #dc2626;">*</span>
+                <div class="form-group mb-md">
+                    <label for="csv_file" class="form-label" style="font-weight: 600;">
+                        Select CSV File <span style="color: var(--color-danger);">*</span>
                     </label>
                     <input
                         type="file"
@@ -94,77 +96,78 @@
                         id="csv_file"
                         accept=".csv"
                         required
-                        style="display: block; width: 100%; padding: 0.5rem; border: 1px solid var(--border, #d1d5db); border-radius: 6px; font-size: 0.875rem; cursor: pointer; box-sizing: border-box;"
+                        class="form-input"
+                        style="padding: 0.5rem; cursor: pointer;"
                         onchange="updateFileName(this)"
                     >
-                    <p id="file-hint" style="margin: 0.35rem 0 0; font-size: 0.8rem; color: var(--text-muted, #6b7280);">
-                        Only .csv files are accepted.
+                    <p id="file-hint" class="text-xs text-muted mt-xs">
+                        Only valid <code>.csv</code> files are accepted.
                     </p>
                 </div>
 
-                <div id="upload-info" style="display: none; padding: 0.6rem 0.75rem; background: var(--surface-alt, #f3f4f6); border-radius: 6px; font-size: 0.85rem; margin-bottom: 1rem; word-break: break-all;">
+                <div id="upload-info" style="display: none; padding: 0.6rem 0.75rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-sm); font-size: 0.85rem; margin-bottom: 1rem; word-break: break-all;">
                 </div>
 
-                <button type="submit" class="btn" id="submit-btn" style="width: 100%;">
+                <button type="submit" class="btn btn-primary" id="submit-btn" style="width: 100%;">
                     Import Patients
                 </button>
             </form>
         </div>
 
         {# Column reference #}
-        <div>
-            <h2 style="margin: 0 0 0.75rem; font-size: 1.1rem;">Column Reference</h2>
-            <p style="font-size: 0.825rem; color: var(--text-muted, #6b7280); margin: 0 0 0.75rem;">
-                <strong>Only the patient's name is required.</strong> All other fields are optional and can be updated anytime later in their profile.
+        <div class="card">
+            <h2 style="margin: 0 0 0.5rem; font-size: 1.15rem; font-weight: 700;">Column Reference</h2>
+            <p class="text-xs text-muted mb-md">
+                <strong>Only the patient's name is required.</strong> All other fields are optional and can be updated anytime in their profile.
             </p>
-            <div style="overflow-x: auto;">
+            <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
                     <thead>
-                        <tr style="background: var(--surface-alt, #f3f4f6); text-align: left;">
-                            <th style="padding: 0.5rem 0.6rem; border-bottom: 2px solid var(--border, #e5e7eb);">Column</th>
-                            <th style="padding: 0.5rem 0.6rem; border-bottom: 2px solid var(--border, #e5e7eb);">Valid Values / Notes</th>
+                        <tr style="background: var(--color-bg); text-align: left;">
+                            <th style="padding: 0.5rem 0.6rem; border-bottom: 2px solid var(--color-border); white-space: nowrap;">Column</th>
+                            <th style="padding: 0.5rem 0.6rem; border-bottom: 2px solid var(--color-border);">Valid Values / Notes</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
-                            <td style="padding: 0.45rem 0.6rem; font-weight: 600;">first_name <span style="color: #dc2626;">*</span></td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">First name (or full name). <em>Required</em></td>
+                        <tr style="border-bottom: 1px solid var(--color-border);">
+                            <td style="padding: 0.45rem 0.6rem; font-weight: 600; white-space: nowrap;">first_name <span style="color: var(--color-danger);">*</span></td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--color-text-muted);">First name (or full name). <em>Required</em></td>
                         </tr>
-                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                        <tr style="border-bottom: 1px solid var(--color-border);">
                             <td style="padding: 0.45rem 0.6rem; font-weight: 600;">last_name</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Last/surname (optional)</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--color-text-muted);">Last/surname (optional)</td>
                         </tr>
-                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                        <tr style="border-bottom: 1px solid var(--color-border);">
                             <td style="padding: 0.45rem 0.6rem; font-weight: 600;">phone</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">7–15 digits, optional + prefix (optional)</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--color-text-muted);">7–15 digits, optional + prefix (optional)</td>
                         </tr>
-                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                        <tr style="border-bottom: 1px solid var(--color-border);">
                             <td style="padding: 0.45rem 0.6rem; font-weight: 600;">gender</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);"><code>M</code>, <code>F</code>, Male, Female (optional)</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--color-text-muted);"><code>M</code>, <code>F</code>, Male, Female (optional)</td>
                         </tr>
-                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                        <tr style="border-bottom: 1px solid var(--color-border);">
                             <td style="padding: 0.45rem 0.6rem;">date_of_birth</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);"><code>YYYY-MM-DD</code> (optional)</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--color-text-muted);"><code>YYYY-MM-DD</code> (optional)</td>
                         </tr>
-                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                        <tr style="border-bottom: 1px solid var(--color-border);">
                             <td style="padding: 0.45rem 0.6rem;">age_range</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">0-5, 6-12, 13-17, 18-25, 26-35, 36-45, 46-55, 56-65, 65+ (optional)</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--color-text-muted);">0-5, 6-12, 13-17, 18-25, 26-35, 36-45, 46-55, 56-65, 65+ (optional)</td>
                         </tr>
-                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                        <tr style="border-bottom: 1px solid var(--color-border);">
                             <td style="padding: 0.45rem 0.6rem;">blood_group</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">A+, A-, B+, B-, AB+, AB-, O+, O- (optional)</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--color-text-muted);">A+, A-, B+, B-, AB+, AB-, O+, O- (optional)</td>
                         </tr>
-                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                        <tr style="border-bottom: 1px solid var(--color-border);">
                             <td style="padding: 0.45rem 0.6rem;">genotype</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">AA, AS, SS, AC, SC, CC (optional)</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--color-text-muted);">AA, AS, SS, AC, SC, CC (optional)</td>
                         </tr>
-                        <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
+                        <tr style="border-bottom: 1px solid var(--color-border);">
                             <td style="padding: 0.45rem 0.6rem;">known_conditions</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Comma-separated conditions (optional)</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--color-text-muted);">Comma-separated conditions (optional)</td>
                         </tr>
                         <tr>
                             <td style="padding: 0.45rem 0.6rem;">home_address</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Home address (optional)</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--color-text-muted);">Home address (optional)</td>
                         </tr>
                     </tbody>
                 </table>

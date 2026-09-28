@@ -39,7 +39,6 @@ class PatientViewsTest(TestCase):
         self.assertIn("recent_intakes", response.context)
         self.assertEqual(len(response.context["recent_intakes"]), 1)
         self.assertContains(response, "Chioma Adeyemi")
-        self.assertContains(response, "120/80")
         self.assertContains(response, f"#vitals-{self.vital.id}")
 
     def test_edit_profile_updates_demographics(self):
