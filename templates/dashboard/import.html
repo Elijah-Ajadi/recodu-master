@@ -115,56 +115,56 @@
         <div>
             <h2 style="margin: 0 0 0.75rem; font-size: 1.1rem;">Column Reference</h2>
             <p style="font-size: 0.825rem; color: var(--text-muted, #6b7280); margin: 0 0 0.75rem;">
-                Use the template above to get started. Required columns are marked with *.
+                <strong>Only the patient's name is required.</strong> All other fields are optional and can be updated anytime later in their profile.
             </p>
             <div style="overflow-x: auto;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.8rem;">
                     <thead>
                         <tr style="background: var(--surface-alt, #f3f4f6); text-align: left;">
                             <th style="padding: 0.5rem 0.6rem; border-bottom: 2px solid var(--border, #e5e7eb);">Column</th>
-                            <th style="padding: 0.5rem 0.6rem; border-bottom: 2px solid var(--border, #e5e7eb);">Valid Values</th>
+                            <th style="padding: 0.5rem 0.6rem; border-bottom: 2px solid var(--border, #e5e7eb);">Valid Values / Notes</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
-                            <td style="padding: 0.45rem 0.6rem; font-weight: 600;">first_name *</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Any text</td>
+                            <td style="padding: 0.45rem 0.6rem; font-weight: 600;">first_name <span style="color: #dc2626;">*</span></td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">First name (or full name). <em>Required</em></td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
-                            <td style="padding: 0.45rem 0.6rem; font-weight: 600;">last_name *</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Any text</td>
+                            <td style="padding: 0.45rem 0.6rem; font-weight: 600;">last_name</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Last/surname (optional)</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
-                            <td style="padding: 0.45rem 0.6rem; font-weight: 600;">phone *</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">7–15 digits, optional + prefix</td>
+                            <td style="padding: 0.45rem 0.6rem; font-weight: 600;">phone</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">7–15 digits, optional + prefix (optional)</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
-                            <td style="padding: 0.45rem 0.6rem; font-weight: 600;">gender *</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);"><code>M</code> or <code>F</code></td>
+                            <td style="padding: 0.45rem 0.6rem; font-weight: 600;">gender</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);"><code>M</code>, <code>F</code>, Male, Female (optional)</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
                             <td style="padding: 0.45rem 0.6rem;">date_of_birth</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);"><code>YYYY-MM-DD</code></td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);"><code>YYYY-MM-DD</code> (optional)</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
                             <td style="padding: 0.45rem 0.6rem;">age_range</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">0-5, 6-12, 13-17, 18-25, 26-35, 36-45, 46-55, 56-65, 65+</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">0-5, 6-12, 13-17, 18-25, 26-35, 36-45, 46-55, 56-65, 65+ (optional)</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
                             <td style="padding: 0.45rem 0.6rem;">blood_group</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">A+, A-, B+, B-, AB+, AB-, O+, O-</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">A+, A-, B+, B-, AB+, AB-, O+, O- (optional)</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
                             <td style="padding: 0.45rem 0.6rem;">genotype</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">AA, AS, SS, AC, SC, CC</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">AA, AS, SS, AC, SC, CC (optional)</td>
                         </tr>
                         <tr style="border-bottom: 1px solid var(--border, #e5e7eb);">
                             <td style="padding: 0.45rem 0.6rem;">known_conditions</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Comma-separated, any text</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Comma-separated conditions (optional)</td>
                         </tr>
                         <tr>
                             <td style="padding: 0.45rem 0.6rem;">home_address</td>
-                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Any text</td>
+                            <td style="padding: 0.45rem 0.6rem; color: var(--text-muted, #6b7280);">Home address (optional)</td>
                         </tr>
                     </tbody>
                 </table>

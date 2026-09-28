@@ -42,13 +42,15 @@ class Patient(models.Model):
     ]
 
     first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100, blank=True, default="")
     phone = models.CharField(
         max_length=15,
         unique=True,
+        null=True,
+        blank=True,
         validators=[RegexValidator(regex=r"^[\+]?[\d\s\-]{7,15}$", message="Enter a valid phone number.")],
     )
-    gender = models.CharField(max_length=1, choices=GENDER_CHOICES)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True, default="")
     age_range = models.CharField(max_length=5, choices=AGE_RANGE_CHOICES, blank=True)
     date_of_birth = models.DateField(null=True, blank=True)
     home_address = models.CharField(max_length=255, blank=True, default="")
@@ -66,11 +68,11 @@ class Patient(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name} {self.last_name}".strip()
 
     @property
     def full_name(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.first_name} {self.last_name}".strip()
 
     @property
     def current_age(self):
@@ -91,6 +93,8 @@ class Patient(models.Model):
         return (next_birthday - today).days
 
     def save(self, *args, **kwargs):
+        if self.phone is not None and not str(self.phone).strip():
+            self.phone = None
         if self.date_of_birth and not self.age_range:
             age = self.current_age
             if age <= 5: self.age_range = "0-5"

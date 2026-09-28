@@ -3,17 +3,73 @@
 {% block title %}Edit Profile - {{ patient.full_name }} - SBCO MedApp{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 600px; margin: 0 auto;">
-    <div class="card-header">Edit Profile - {{ patient.full_name }}</div>
+<div class="card" style="max-width: 680px; margin: 0 auto;">
+    <div class="card-header">Edit Patient Profile — {{ patient.full_name|default:"Patient" }}</div>
     <form method="POST">
         {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="alert alert-danger mb-md">
+            <strong>Please correct the errors below:</strong>
+            <ul style="margin: 0.5rem 0 0 1.25rem; padding: 0;">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li>{{ field|title }}: {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label class="form-label">First Name <span style="color: var(--color-danger);">*</span></label>
+                <input type="text" name="first_name" class="form-input" value="{{ form.first_name.value|default:patient.first_name }}" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Last Name</label>
+                <input type="text" name="last_name" class="form-input" value="{{ form.last_name.value|default:patient.last_name }}">
+            </div>
+        </div>
+
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label class="form-label">Phone Number</label>
+                <input type="text" name="phone" class="form-input" value="{{ form.phone.value|default:patient.phone|default:'' }}" placeholder="e.g. +2348012345678">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Gender</label>
+                <select name="gender" class="form-input">
+                    <option value="">Select Gender</option>
+                    <option value="M" {% if form.gender.value == 'M' or patient.gender == 'M' %}selected{% endif %}>Male</option>
+                    <option value="F" {% if form.gender.value == 'F' or patient.gender == 'F' %}selected{% endif %}>Female</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label class="form-label">Date of Birth</label>
+                <input type="date" name="date_of_birth" class="form-input" value="{{ patient.date_of_birth|date:'Y-m-d' }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Age Range</label>
+                <select name="age_range" class="form-input">
+                    <option value="">Auto-calculate from DOB</option>
+                    {% for val, label in patient.AGE_RANGE_CHOICES %}
+                    <option value="{{ val }}" {% if form.age_range.value == val or patient.age_range == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
         <div class="grid grid-2">
             <div class="form-group">
                 <label class="form-label">Blood Group</label>
                 <select name="blood_group" class="form-input">
                     <option value="">Unknown</option>
                     {% for code, label in patient.BLOOD_GROUPS %}
-                    <option value="{{ code }}" {% if patient.blood_group == code %}selected{% endif %}>{{ label }}</option>
+                    <option value="{{ code }}" {% if form.blood_group.value == code or patient.blood_group == code %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -22,32 +78,26 @@
                 <select name="genotype" class="form-input">
                     <option value="">Unknown</option>
                     {% for code, label in patient.GENOTYPES %}
-                    <option value="{{ code }}" {% if patient.genotype == code %}selected{% endif %}>{{ label }}</option>
+                    <option value="{{ code }}" {% if form.genotype.value == code or patient.genotype == code %}selected{% endif %}>{{ label }}</option>
                     {% endfor %}
                 </select>
             </div>
         </div>
 
-        <div class="grid grid-2">
-            <div class="form-group">
-                <label class="form-label">Home Address</label>
-                <input type="text" name="home_address" class="form-input" value="{{ patient.home_address }}" placeholder="e.g. 123 Health St, Lagos">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Date of Birth</label>
-                <input type="date" name="date_of_birth" class="form-input" value="{{ patient.date_of_birth|date:'Y-m-d' }}">
-            </div>
+        <div class="form-group">
+            <label class="form-label">Home Address</label>
+            <input type="text" name="home_address" class="form-input" value="{{ form.home_address.value|default:patient.home_address }}" placeholder="e.g. 123 Health St, Lagos">
         </div>
 
         <div class="form-group">
             <label class="form-label">Known Conditions</label>
-            <textarea name="known_conditions" class="form-input" rows="3" placeholder="e.g. Hypertension, Diabetes, Sickle Cell">{{ patient.known_conditions }}</textarea>
+            <textarea name="known_conditions" class="form-input" rows="3" placeholder="e.g. Hypertension, Diabetes, Asthma, Allergies">{{ form.known_conditions.value|default:patient.known_conditions }}</textarea>
             <p class="text-xs text-muted mt-sm">Separate multiple conditions with commas</p>
         </div>
 
         <div class="flex gap-md mt-lg" style="flex-wrap: wrap;">
             <a href="{% url 'patients:profile' patient.id %}" class="btn btn-outline" style="flex: 1; text-align: center; min-width: 120px;">Cancel</a>
-            <button type="submit" class="btn btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Update Profile</button>
+            <button type="submit" class="btn btn-primary" style="flex: 1; text-align: center; min-width: 120px;">Save Profile</button>
         </div>
     </form>
 </div>

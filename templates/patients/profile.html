@@ -59,11 +59,11 @@
 <div class="card">
     <div class="card-header">Recent Vitals</div>
     {% if patient.vitalsrecord_set.all %}
-        {% for vitals in patient.vitalsrecord_set.all|slice:":5" %}
-        <div class="history-card {% if vitals.is_critical %}danger{% elif vitals.is_elevated %}warning{% else %}normal{% endif %}">
+        {% for vitals in patient.vitalsrecord_set.all|slice:":10" %}
+        <div id="vitals-{{ vitals.id }}" class="history-card {% if vitals.is_critical %}danger{% elif vitals.is_elevated %}warning{% else %}normal{% endif %}" style="scroll-margin-top: 90px; transition: all 0.3s ease;">
             <div class="flex justify-between items-center mb-sm">
                 <span class="text-sm text-muted">{{ vitals.recorded_at|date:"M d, Y H:i" }}</span>
-                <span class="text-xs text-muted">{{ vitals.recorded_by.username }}</span>
+                <span class="text-xs text-muted">By {{ vitals.recorded_by.username|default:"Staff" }}</span>
             </div>
             <div class="grid grid-2 mt-sm">
                 <div>

@@ -26,17 +26,17 @@
         <form id="register-form">
             {% csrf_token %}
             <div class="form-group">
-                <label class="form-label">First Name</label>
-                <input type="text" name="first_name" class="form-input" tabindex="1" required>
+                <label class="form-label">First Name <span style="color: var(--color-danger);">*</span></label>
+                <input type="text" name="first_name" class="form-input" tabindex="1" required autofocus>
             </div>
             <div class="form-group">
                 <label class="form-label">Last Name</label>
-                <input type="text" name="last_name" class="form-input" tabindex="2" required>
+                <input type="text" name="last_name" class="form-input" tabindex="2">
             </div>
             <div class="grid grid-2">
                 <div class="form-group">
                     <label class="form-label">Phone Number</label>
-                    <input type="text" name="phone" class="form-input" tabindex="3" required>
+                    <input type="text" name="phone" class="form-input" tabindex="3" placeholder="Optional">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Date of Birth</label>
@@ -45,21 +45,21 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Home Address</label>
-                <input type="text" name="home_address" class="form-input" tabindex="5">
+                <input type="text" name="home_address" class="form-input" tabindex="5" placeholder="Optional">
             </div>
             <div class="grid grid-2">
                 <div class="form-group">
                     <label class="form-label">Gender</label>
-                    <select name="gender" class="form-input" tabindex="6" required>
-                        <option value="">Select</option>
-                        <option value="M" {% if form.gender.value == 'M' %}selected{% endif %}>Male</option>
-                        <option value="F" {% if form.gender.value == 'F' %}selected{% endif %}>Female</option>
+                    <select name="gender" class="form-input" tabindex="6">
+                        <option value="">Select (Optional)</option>
+                        <option value="M">Male</option>
+                        <option value="F">Female</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Age Range (Auto if DOB set)</label>
+                    <label class="form-label">Age Range</label>
                     <select name="age_range" class="form-input" tabindex="7">
-                        <option value="">Auto-calculate</option>
+                        <option value="">Auto-calculate from DOB</option>
                         <option value="0-5">0-5</option>
                         <option value="6-12">6-12</option>
                         <option value="13-17">13-17</option>
@@ -73,9 +73,97 @@
                 </div>
             </div>
             <div id="register-error" class="alert alert-error" style="display: none;"></div>
-            <button type="submit" class="btn btn-primary" style="width: 100%;" tabindex="6">Register</button>
+            <button type="submit" class="btn btn-primary" style="width: 100%;" tabindex="8">Register</button>
         </form>
     </div>
+</div>
+
+<div class="card mt-lg">
+    <div class="flex justify-between items-center mb-md" style="flex-wrap: wrap; gap: 0.5rem;">
+        <div>
+            <h2 style="font-size: var(--text-xl); font-weight: 700; margin: 0;">Recent Intake History</h2>
+            <p class="text-sm text-muted" style="margin-top: 0.25rem;">Latest clinical intakes recorded across patients (latest to oldest).</p>
+        </div>
+        {% if recent_intakes %}
+        <span class="badge badge-primary">{{ recent_intakes|length }} Recent Check-up{{ recent_intakes|length|pluralize }}</span>
+        {% endif %}
+    </div>
+
+    {% if recent_intakes %}
+    <div class="intake-list">
+        {% for intake in recent_intakes %}
+        <a href="{% url 'patients:profile' intake.patient.id %}#vitals-{{ intake.id }}" class="intake-activity-card {% if intake.is_critical %}critical{% elif intake.is_elevated %}elevated{% else %}normal{% endif %}">
+            <div class="flex justify-between items-center" style="flex-wrap: wrap; gap: 0.5rem;">
+                <div class="flex items-center gap-sm" style="flex-wrap: wrap;">
+                    <strong style="font-size: 1.05rem; color: var(--color-text);">{{ intake.patient.full_name }}</strong>
+                    {% if intake.patient.phone %}
+                    <span class="text-sm text-muted">📞 {{ intake.patient.phone }}</span>
+                    {% endif %}
+                    {% if intake.patient.gender %}
+                    <span class="badge" style="background: var(--color-bg); border: 1px solid var(--color-border); font-size: 0.7rem;">
+                        {{ intake.patient.get_gender_display }}
+                    </span>
+                    {% endif %}
+                    {% if intake.patient.blood_group %}
+                    <span class="badge badge-danger" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">{{ intake.patient.blood_group }}</span>
+                    {% endif %}
+                    {% if intake.patient.genotype %}
+                    <span class="badge badge-primary" style="font-size: 0.7rem; padding: 0.15rem 0.5rem;">{{ intake.patient.genotype }}</span>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-sm">
+                    {% if intake.is_critical %}
+                    <span class="badge badge-danger">⚠️ Critical</span>
+                    {% elif intake.is_elevated %}
+                    <span class="badge badge-warning">⚡ Elevated</span>
+                    {% else %}
+                    <span class="badge badge-success">✓ Normal</span>
+                    {% endif %}
+                    <span class="text-xs text-muted">{{ intake.recorded_at|date:"M d, Y · H:i" }}</span>
+                </div>
+            </div>
+
+            <div class="intake-metrics-grid">
+                <div class="intake-metric-item">
+                    <span class="intake-metric-label">Blood Pressure</span>
+                    <span class="intake-metric-value" style="{% if intake.systolic >= 140 or intake.diastolic >= 90 %}color: var(--color-danger);{% elif intake.systolic >= 120 or intake.diastolic >= 80 %}color: var(--color-warning);{% endif %}">
+                        {{ intake.systolic|default:"—" }}/{{ intake.diastolic|default:"—" }} <small style="font-size: 0.7rem; font-weight: normal;">mmHg</small>
+                    </span>
+                </div>
+                <div class="intake-metric-item">
+                    <span class="intake-metric-label">Pulse</span>
+                    <span class="intake-metric-value" style="{% if intake.pulse > 120 or intake.pulse < 60 %}color: var(--color-danger);{% elif intake.pulse >= 100 %}color: var(--color-warning);{% endif %}">
+                        {{ intake.pulse|default:"—" }} <small style="font-size: 0.7rem; font-weight: normal;">bpm</small>
+                    </span>
+                </div>
+                <div class="intake-metric-item">
+                    <span class="intake-metric-label">Temperature</span>
+                    <span class="intake-metric-value" style="{% if intake.temperature > 38.0 or intake.temperature < 36.1 %}color: var(--color-danger);{% elif intake.temperature >= 37.3 %}color: var(--color-warning);{% endif %}">
+                        {{ intake.temperature|default:"—" }} <small style="font-size: 0.7rem; font-weight: normal;">°C</small>
+                    </span>
+                </div>
+                <div class="intake-metric-item">
+                    <span class="intake-metric-label">Glucose ({{ intake.glucose_type }})</span>
+                    <span class="intake-metric-value">
+                        {{ intake.glucose_value|default:"—" }} <small style="font-size: 0.7rem; font-weight: normal;">mmol/L</small>
+                    </span>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mt-xs text-xs text-muted">
+                <span>Recorded by <strong>{{ intake.recorded_by.username|default:"Staff" }}</strong></span>
+                <span style="color: var(--color-primary); font-weight: 500;">View Profile &amp; Record →</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div style="text-align: center; padding: 2.5rem 1rem; color: var(--color-text-muted);">
+        <div style="font-size: 2rem; margin-bottom: 0.5rem;">📋</div>
+        <p style="font-weight: 600; margin-bottom: 0.25rem;">No recent intakes logged yet</p>
+        <p class="text-sm">Search for an existing patient above or register a new patient to record vitals.</p>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}
 

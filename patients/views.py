@@ -6,12 +6,17 @@ from django.http import JsonResponse
 from django.db.models import Q
 from django.views.decorators.http import require_http_methods
 from .models import Patient
-from .forms import PatientRegistrationForm
+from vitals.models import VitalsRecord
+from .forms import PatientRegistrationForm, PatientForm
 
 
 @login_required
 def search(request):
-    return render(request, "patients/search.html")
+    recent_intakes = (
+        VitalsRecord.objects.select_related("patient", "recorded_by")
+        .order_by("-recorded_at")[:30]
+    )
+    return render(request, "patients/search.html", {"recent_intakes": recent_intakes})
 
 
 @login_required
@@ -29,8 +34,8 @@ def ajax_search(request):
     data = [
         {
             "id": p.id,
-            "name": f"{p.first_name} {p.last_name}",
-            "phone": p.phone,
+            "name": f"{p.first_name} {p.last_name}".strip(),
+            "phone": p.phone or "No phone",
             "url": f"/patients/{p.id}/",
         }
         for p in results
@@ -65,15 +70,16 @@ def profile(request, pk):
 def edit_profile(request, pk):
     patient = get_object_or_404(Patient, pk=pk)
     if request.method == "POST":
-        patient.blood_group = request.POST.get("blood_group", "")
-        patient.genotype = request.POST.get("genotype", "")
-        patient.home_address = request.POST.get("home_address", "")
-        patient.date_of_birth = request.POST.get("date_of_birth") or None
-        patient.known_conditions = request.POST.get("known_conditions", "")
-        patient.save()
-        messages.success(request, "Medical profile updated.")
-        return redirect("patients:profile", pk=pk)
-    return render(request, "patients/edit_profile.html", {"patient": patient})
+        form = PatientForm(request.POST, instance=patient)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Patient profile updated successfully.")
+            return redirect("patients:profile", pk=pk)
+        else:
+            messages.error(request, "Please correct the errors in the form.")
+    else:
+        form = PatientForm(instance=patient)
+    return render(request, "patients/edit_profile.html", {"patient": patient, "form": form})
 
 
 @login_required

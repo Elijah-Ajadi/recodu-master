@@ -138,10 +138,17 @@ IMPORT_CSV_COLUMNS = [
     "known_conditions", "home_address",
 ]
 
-IMPORT_CSV_SAMPLE = [
-    "Ada", "Okonkwo", "+2348012345678", "F",
-    "1985-04-12", "36-45", "O+", "AA",
-    "hypertension,diabetes", "12 Murtala Way, Lagos",
+IMPORT_CSV_SAMPLES = [
+    [
+        "Ada", "Okonkwo", "+2348012345678", "F",
+        "1985-04-12", "36-45", "O+", "AA",
+        "hypertension,diabetes", "12 Murtala Way, Lagos",
+    ],
+    [
+        "Chidi", "Eze", "", "",
+        "", "", "", "",
+        "", "",
+    ],
 ]
 
 
@@ -152,7 +159,8 @@ def download_template(request):
     response["Content-Disposition"] = 'attachment; filename="recodu_import_template.csv"'
     writer = csv.writer(response)
     writer.writerow(IMPORT_CSV_COLUMNS)
-    writer.writerow(IMPORT_CSV_SAMPLE)
+    for sample in IMPORT_CSV_SAMPLES:
+        writer.writerow(sample)
     return response
 
 
@@ -169,34 +177,50 @@ VALID_GENOTYPES = {"AA", "AS", "SS", "AC", "SC", "CC"}
 def _validate_import_row(row_dict, row_num, seen_phones):
     """
     Validate a single CSV row dict.
+    Allows creating profile even if only the name is provided.
     Returns (patient_instance_or_None, list_of_error_strings).
     """
+    import re
+    from datetime import datetime
     errors = []
 
     first_name = row_dict.get("first_name", "").strip()
     last_name = row_dict.get("last_name", "").strip()
-    phone = row_dict.get("phone", "").strip()
-    gender = row_dict.get("gender", "").strip().upper()
+    full_name = row_dict.get("name", "").strip() or row_dict.get("full_name", "").strip()
+
+    # If first_name is empty but a composite name was provided:
+    if not first_name and full_name:
+        parts = full_name.split(" ", 1)
+        first_name = parts[0].strip()
+        if len(parts) > 1 and not last_name:
+            last_name = parts[1].strip()
+    elif not first_name and last_name:
+        first_name = last_name
+        last_name = ""
+
+    # Required field: ONLY patient name is strictly required
+    if not first_name:
+        errors.append("Patient name (first_name or name) is required")
+
+    phone = row_dict.get("phone", "").strip() or None
+    raw_gender = row_dict.get("gender", "").strip().upper()
+    if raw_gender.startswith("M"):
+        gender = "M"
+    elif raw_gender.startswith("F"):
+        gender = "F"
+    else:
+        gender = raw_gender
+
     date_of_birth = row_dict.get("date_of_birth", "").strip() or None
     age_range = row_dict.get("age_range", "").strip()
-    blood_group = row_dict.get("blood_group", "").strip()
-    genotype = row_dict.get("genotype", "").strip()
+    blood_group = row_dict.get("blood_group", "").strip().upper()
+    genotype = row_dict.get("genotype", "").strip().upper()
     known_conditions = row_dict.get("known_conditions", "").strip()
     home_address = row_dict.get("home_address", "").strip()
 
-    # Required fields
-    if not first_name:
-        errors.append("first_name is required")
-    if not last_name:
-        errors.append("last_name is required")
-    if not phone:
-        errors.append("phone is required")
-    if not gender:
-        errors.append("gender is required")
-
-    # Choice validation (only if value is provided)
+    # Optional Choice validation (only if value is provided)
     if gender and gender not in VALID_GENDERS:
-        errors.append(f"gender must be M or F (got '{gender}')")
+        errors.append(f"gender must be M or F (got '{raw_gender}')")
     if age_range and age_range not in VALID_AGE_RANGES:
         errors.append(f"age_range '{age_range}' is not a valid choice")
     if blood_group and blood_group not in VALID_BLOOD_GROUPS:
@@ -204,21 +228,16 @@ def _validate_import_row(row_dict, row_num, seen_phones):
     if genotype and genotype not in VALID_GENOTYPES:
         errors.append(f"genotype '{genotype}' is not a valid choice")
 
-    # Phone format (basic: digits, spaces, dashes, optional leading +, 7-15 chars)
-    import re
-    if phone and not re.match(r"^[\+]?[\d\s\-]{7,15}$", phone):
-        errors.append(f"phone '{phone}' is not a valid phone number")
-
-    # Duplicate within this file
-    if phone and phone in seen_phones:
-        errors.append(f"phone '{phone}' appears more than once in this file")
-    elif phone:
-        seen_phones.add(phone)
-
-    # Duplicate in database
-    if phone and not errors:
-        if Patient.objects.filter(phone=phone).exists():
-            errors.append(f"phone '{phone}' is already registered in the system")
+    # Phone format (only checked if phone is provided)
+    if phone:
+        if not re.match(r"^[\+]?[\d\s\-]{7,15}$", phone):
+            errors.append(f"phone '{phone}' is not a valid phone number")
+        elif phone in seen_phones:
+            errors.append(f"phone '{phone}' appears more than once in this file")
+        else:
+            seen_phones.add(phone)
+            if Patient.objects.filter(phone=phone).exists():
+                errors.append(f"phone '{phone}' is already registered in the system")
 
     if errors:
         return None, errors
@@ -236,11 +255,9 @@ def _validate_import_row(row_dict, row_num, seen_phones):
         home_address=home_address,
     )
 
-    # date_of_birth — try to parse, soft-fail
+    # date_of_birth — try to parse if provided
     if date_of_birth:
-        from datetime import date as date_type
         try:
-            from datetime import datetime
             patient.date_of_birth = datetime.strptime(date_of_birth, "%Y-%m-%d").date()
         except ValueError:
             errors.append(f"date_of_birth '{date_of_birth}' must be in YYYY-MM-DD format")
@@ -252,6 +269,7 @@ def _validate_import_row(row_dict, row_num, seen_phones):
 @login_required
 @user_passes_test(is_unit_head)
 def import_patients(request):
+    import io
     context = {}
 
     if request.method == "POST":
@@ -274,11 +292,11 @@ def import_patients(request):
 
         reader = csv.DictReader(io.StringIO(file_content))
 
-        # Validate expected columns
-        required_columns = {"first_name", "last_name", "phone", "gender"}
-        if not reader.fieldnames or not required_columns.issubset(set(reader.fieldnames)):
-            missing = required_columns - set(reader.fieldnames or [])
-            messages.error(request, f"CSV is missing required column(s): {', '.join(sorted(missing))}. Please use the provided template.")
+        # Validate that reader has fieldnames and at least one name column
+        fieldnames = set(reader.fieldnames or [])
+        name_columns = {"first_name", "last_name", "name", "full_name"}
+        if not fieldnames or not (name_columns & fieldnames):
+            messages.error(request, "CSV must contain at least a name column (e.g. 'first_name', 'last_name', or 'name').")
             return render(request, "dashboard/import.html", context)
 
         valid_patients = []
@@ -292,7 +310,7 @@ def import_patients(request):
             else:
                 failed_rows.append({
                     "row": row_num,
-                    "name": f"{row.get('first_name', '').strip()} {row.get('last_name', '').strip()}".strip() or "—",
+                    "name": f"{row.get('first_name', '').strip()} {row.get('last_name', '').strip()}".strip() or row.get("name", "").strip() or "—",
                     "phone": row.get("phone", "").strip() or "—",
                     "errors": errors,
                 })
