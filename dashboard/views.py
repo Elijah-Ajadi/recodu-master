@@ -242,6 +242,10 @@ def _validate_import_row(row_dict, row_num, seen_phones):
     if errors:
         return None, errors
 
+    # Normalize phone: ensure empty strings become None
+    if phone is not None and not str(phone).strip():
+        phone = None
+
     # Build the Patient instance (don't save yet)
     patient = Patient(
         first_name=first_name,

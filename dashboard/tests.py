@@ -61,3 +61,17 @@ class ImportPatientsTest(TestCase):
         )
         self.assertEqual(response.status_code, 200)
         self.assertEqual(Patient.objects.count(), 3)
+
+    def test_import_with_empty_phone_field_in_csv(self):
+        csv_content = "name,phone,gender\nMama Adetunji Abigail,,F\n"
+        csv_file = io.BytesIO(csv_content.encode("utf-8"))
+        csv_file.name = "patients.csv"
+
+        response = self.client.post(
+            reverse("dashboard:import_patients"),
+            {"csv_file": csv_file},
+            follow=True,
+        )
+        self.assertEqual(response.status_code, 200)
+        patient = Patient.objects.get(first_name="Mama")
+        self.assertIsNone(patient.phone)
