@@ -1,5 +1,5 @@
 from django.urls import path
-from . import views
+from . import views, password_views
 
 app_name = "dashboard"
 
@@ -11,7 +11,7 @@ urlpatterns = [
     path("users/<int:pk>/role/", views.change_role, name="change_role"),
     path(
         "users/<int:pk>/reset-password/",
-        views.reset_volunteer_password,
+        password_views.reset_volunteer_password,
         name="reset_volunteer_password",
     ),
     path("export/", views.export, name="export"),
