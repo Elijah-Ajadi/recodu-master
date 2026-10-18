@@ -8,7 +8,7 @@ from accounts.models import User
 
 
 @login_required
-@user_passes_test(lambda user: user.is_superuser)
+@user_passes_test(lambda user: user.is_superuser, raise_exception=True)
 @require_http_methods(["GET", "POST"])
 def reset_volunteer_password(request, pk):
     volunteer = get_object_or_404(
@@ -18,6 +18,8 @@ def reset_volunteer_password(request, pk):
         is_superuser=False,
     )
     form = SetPasswordForm(volunteer, request.POST or None)
+    for field in form.fields.values():
+        field.widget.attrs["class"] = "form-input"
 
     if request.method == "POST" and form.is_valid():
         form.save()
