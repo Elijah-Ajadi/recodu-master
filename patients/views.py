@@ -47,28 +47,39 @@ def ajax_search(request):
 @login_required
 @require_http_methods(["POST"])
 def create(request):
-    try:
-        data = json.loads(request.body or b"{}")
-    except (json.JSONDecodeError, UnicodeDecodeError):
-        return JsonResponse(
-            {"success": False, "error": "Invalid JSON request."},
-            status=400,
-        )
+    data = None
+    if request.content_type == "application/json" or (request.body and request.body.strip().startswith(b"{")):
+        try:
+            data = json.loads(request.body.decode("utf-8") if isinstance(request.body, bytes) else request.body)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            return JsonResponse(
+                {"success": False, "error": "Invalid JSON request payload."},
+                status=400,
+            )
+
+    if data is None:
+        data = request.POST.dict() if request.POST else {}
 
     if not isinstance(data, dict):
         return JsonResponse(
-            {"success": False, "error": "The request body must be a JSON object."},
+            {"success": False, "error": "The request payload must be a JSON object or form data."},
             status=400,
         )
 
     form = PatientRegistrationForm(data)
     if form.is_valid():
-        patient = form.save()
-        return JsonResponse({
-            "success": True,
-            "patient_id": patient.id,
-            "url": f"/patients/{patient.id}/",
-        })
+        try:
+            patient = form.save()
+            return JsonResponse({
+                "success": True,
+                "patient_id": patient.id,
+                "url": f"/patients/{patient.id}/",
+            })
+        except Exception:
+            return JsonResponse(
+                {"success": False, "error": "An error occurred while saving the patient record."},
+                status=500,
+            )
 
     return JsonResponse(
         {"success": False, "errors": form.errors},

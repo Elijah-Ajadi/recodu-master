@@ -173,7 +173,20 @@ document.addEventListener("DOMContentLoaded", function () {
             body: JSON.stringify(Object.fromEntries(formData)),
         })
         .then(async response => {
-            const data = await response.json().catch(() => ({ success: false, error: "An unexpected error occurred (" + response.status + ")." }));
+            if (response.redirected || (response.url && response.url.includes("/login"))) {
+                window.location.href = "/accounts/login/?next=" + encodeURIComponent(window.location.pathname);
+                return;
+            }
+            const contentType = response.headers.get("content-type") || "";
+            if (!contentType.includes("application/json")) {
+                if (response.status === 401 || response.status === 403) {
+                    window.location.href = "/accounts/login/?next=" + encodeURIComponent(window.location.pathname);
+                    return;
+                }
+                throw new Error("Server error (" + response.status + "). Please refresh and try again.");
+            }
+
+            const data = await response.json();
             if (response.ok && data.success) {
                 window.location.href = data.url;
             } else {
@@ -190,7 +203,7 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         })
         .catch(err => {
-            registerError.textContent = "Network error or server unreachable. Please try again.";
+            registerError.textContent = err.message || "Network error or server unreachable. Please try again.";
             registerError.style.display = "block";
         })
         .finally(() => {

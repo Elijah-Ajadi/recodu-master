@@ -101,3 +101,47 @@ class PatientViewsTest(TestCase):
         self.assertEqual(self.patient.blood_group, "O+")
         self.assertEqual(self.patient.genotype, "AA")
         self.assertEqual(self.patient.home_address, "15 Health Boulevard")
+
+    def test_create_patient_api_leap_year_dob(self):
+        url = reverse("patients:create")
+        payload = {
+            "first_name": "Kofi",
+            "last_name": "Annan",
+            "date_of_birth": "2000-02-29",
+        }
+        response = self.client.post(
+            url,
+            data=payload,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        new_patient = Patient.objects.get(id=data["patient_id"])
+        self.assertIsNotNone(new_patient.days_to_birthday)
+
+        # Check profile page renders without error
+        profile_response = self.client.get(reverse("patients:profile", kwargs={"pk": new_patient.id}))
+        self.assertEqual(profile_response.status_code, 200)
+
+    def test_create_patient_api_unauthenticated_redirects(self):
+        self.client.logout()
+        url = reverse("patients:create")
+        payload = {"first_name": "Unauth"}
+        response = self.client.post(
+            url,
+            data=payload,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("accounts:login"), response.url)
+
+    def test_create_patient_api_form_encoded(self):
+        url = reverse("patients:create")
+        response = self.client.post(
+            url,
+            data={"first_name": "FormUser", "last_name": "Test"},
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
