@@ -21,6 +21,20 @@ class PatientForm(forms.ModelForm):
 
 
 class PatientRegistrationForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Only the patient's first name is required to create a profile.
+        for field_name in (
+            "last_name",
+            "phone",
+            "gender",
+            "date_of_birth",
+            "age_range",
+            "home_address",
+        ):
+            self.fields[field_name].required = False
+        self.fields["first_name"].required = True
+
     class Meta:
         model = Patient
         fields = ["first_name", "last_name", "phone", "gender", "date_of_birth", "age_range", "home_address"]
