@@ -156,23 +156,45 @@ document.addEventListener("DOMContentLoaded", function () {
     registerForm.addEventListener("submit", function (e) {
         e.preventDefault();
         registerError.style.display = "none";
+        registerError.textContent = "";
+
+        const submitBtn = registerForm.querySelector('button[type="submit"]');
+        if (submitBtn) submitBtn.disabled = true;
+
+        const csrfToken = registerForm.querySelector('[name=csrfmiddlewaretoken]')?.value || getCookie("csrftoken");
         const formData = new FormData(registerForm);
+
         fetch("/patients/api/create/", {
             method: "POST",
             headers: {
-                "X-CSRFToken": getCookie("csrftoken"),
+                "X-CSRFToken": csrfToken,
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(Object.fromEntries(formData)),
         })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
+        .then(async response => {
+            const data = await response.json().catch(() => ({ success: false, error: "An unexpected error occurred (" + response.status + ")." }));
+            if (response.ok && data.success) {
                 window.location.href = data.url;
             } else {
-                registerError.textContent = data.errors ? Object.values(data.errors).flat().join(" ") : data.error;
+                let errorMessage = "An error occurred while registering the patient.";
+                if (data.errors) {
+                    errorMessage = Object.entries(data.errors)
+                        .map(([field, errs]) => `${field.replace('_', ' ')}: ${Array.isArray(errs) ? errs.join(', ') : errs}`)
+                        .join(" ");
+                } else if (data.error) {
+                    errorMessage = data.error;
+                }
+                registerError.textContent = errorMessage;
                 registerError.style.display = "block";
             }
+        })
+        .catch(err => {
+            registerError.textContent = "Network error or server unreachable. Please try again.";
+            registerError.style.display = "block";
+        })
+        .finally(() => {
+            if (submitBtn) submitBtn.disabled = false;
         });
     });
 });

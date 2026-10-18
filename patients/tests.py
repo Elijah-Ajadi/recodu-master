@@ -41,6 +41,45 @@ class PatientViewsTest(TestCase):
         self.assertContains(response, "Chioma Adeyemi")
         self.assertContains(response, f"#vitals-{self.vital.id}")
 
+    def test_create_patient_api_success(self):
+        url = reverse("patients:create")
+        payload = {
+            "first_name": "Ademola",
+            "last_name": "Ajadi",
+            "phone": "",
+            "date_of_birth": "",
+            "home_address": "",
+            "gender": "",
+            "age_range": "",
+        }
+        response = self.client.post(
+            url,
+            data=payload,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertTrue(data["success"])
+        new_patient = Patient.objects.get(id=data["patient_id"])
+        self.assertEqual(new_patient.first_name, "Ademola")
+        self.assertEqual(new_patient.last_name, "Ajadi")
+
+    def test_create_patient_api_validation_error(self):
+        url = reverse("patients:create")
+        payload = {
+            "first_name": "",
+            "last_name": "Ajadi",
+        }
+        response = self.client.post(
+            url,
+            data=payload,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, 400)
+        data = response.json()
+        self.assertFalse(data["success"])
+        self.assertIn("first_name", data["errors"])
+
     def test_edit_profile_updates_demographics(self):
         response = self.client.post(
             reverse("patients:edit_profile", kwargs={"pk": self.patient.id}),
