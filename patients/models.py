@@ -87,9 +87,17 @@ class Patient(models.Model):
         if not self.date_of_birth:
             return None
         today = date.today()
-        next_birthday = date(today.year, self.date_of_birth.month, self.date_of_birth.day)
+        try:
+            next_birthday = date(today.year, self.date_of_birth.month, self.date_of_birth.day)
+        except ValueError:
+            next_birthday = date(today.year, 2, 28)
+
         if next_birthday < today:
-            next_birthday = date(today.year + 1, self.date_of_birth.month, self.date_of_birth.day)
+            try:
+                next_birthday = date(today.year + 1, self.date_of_birth.month, self.date_of_birth.day)
+            except ValueError:
+                next_birthday = date(today.year + 1, 2, 28)
+
         return (next_birthday - today).days
 
     def save(self, *args, **kwargs):

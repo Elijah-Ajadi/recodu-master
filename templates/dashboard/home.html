@@ -43,17 +43,17 @@
                 </div>
                 <div class="flex gap-md">
                     <div class="text-xs">
-                        <span class="text-muted">BP:</span> 
+                        <span class="text-muted">BP:</span>
                         <span class="font-bold {% if v.is_critical %}text-danger{% elif v.is_elevated %}text-warning{% endif %}">
                             {{ v.systolic|default:"—" }}/{{ v.diastolic|default:"—" }}
                         </span>
                     </div>
                     <div class="text-xs">
-                        <span class="text-muted">Pulse:</span> 
+                        <span class="text-muted">Pulse:</span>
                         <span class="font-bold">{{ v.pulse|default:"—" }}</span>
                     </div>
                     <div class="text-xs">
-                        <span class="text-muted">Temp:</span> 
+                        <span class="text-muted">Temp:</span>
                         <span class="font-bold">{{ v.temperature|default:"—" }}°C</span>
                     </div>
                 </div>

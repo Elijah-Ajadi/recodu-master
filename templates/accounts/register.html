@@ -11,10 +11,10 @@
                 <p class="text-sm text-muted">Create a new staff account for your unit.</p>
             </div>
         </div>
-        
+
         <form method="POST" novalidate>
             {% csrf_token %}
-            
+
             <div class="form-group">
                 <label for="{{ form.username.id_for_label }}" class="form-label">Choose Username</label>
                 <div style="position: relative;">
@@ -38,7 +38,7 @@
             </div>
 
             <div class="form-group" style="display: none;">
-                <!-- Role defaults to VOLUNTEER in form, but we can manage it in UI later. 
+                <!-- Role defaults to VOLUNTEER in form, but we can manage it in UI later.
                      We keep it hidden here for simplicity and safety. -->
                 {{ form.role.as_hidden }}
             </div>

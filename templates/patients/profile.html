@@ -20,7 +20,7 @@
             </span>
             {% if patient.date_of_birth %}
             <span class="badge badge-success" title="Birthday: {{ patient.date_of_birth|date:'M d' }}">
-                🎂 {% if patient.days_to_birthday == 0 %}Tomorrow!{% else %}In {{ patient.days_to_birthday }} days{% endif %}
+                🎂 {% if patient.days_to_birthday == 0 %}Today!{% elif patient.days_to_birthday == 1 %}Tomorrow!{% else %}In {{ patient.days_to_birthday }} days{% endif %}
             </span>
             {% endif %}
         </div>
