@@ -59,6 +59,11 @@
                     <td style="text-align: right;">
                         <div class="flex gap-sm justify-end">
                             {% if u.id != user.id %}
+                                {% if user.is_superuser and u.role == "VOLUNTEER" and not u.is_superuser %}
+                                <a href="{% url 'dashboard:reset_volunteer_password' u.id %}" class="btn btn-outline btn-sm">
+                                    Reset Password
+                                </a>
+                                {% endif %}
                                 <!-- Role Toggle -->
                                 <form action="{% url 'dashboard:change_role' u.id %}" method="POST" style="display: inline;">
                                     {% csrf_token %}
